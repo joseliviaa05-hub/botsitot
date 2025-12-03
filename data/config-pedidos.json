@@ -1,0 +1,14 @@
+{
+  "delivery": {
+    "habilitado": true,
+    "costo": 500,
+    "gratis_desde": 10000
+  },
+  "descuentos": {
+    "habilitado": false,
+    "reglas": []
+  },
+  "carrito": {
+    "expiracion_minutos": 15
+  }
+}

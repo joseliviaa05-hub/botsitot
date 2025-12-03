@@ -1,0 +1,603 @@
+{
+  "ultimo_numero": 26,
+  "pedidos": [
+    {
+      "id": "PED-001",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-16T14:53:16.057Z",
+      "productos": [
+        {
+          "nombre": "Lapicera Azul",
+          "cantidad": 2,
+          "precio_unitario": 200,
+          "subtotal": 400
+        }
+      ],
+      "subtotal": 400,
+      "descuento": 0,
+      "delivery": 0,
+      "total": 400,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado"
+    },
+    {
+      "id": "PED-002",
+      "cliente": "5491168679222@c.us",
+      "nombre": "florr",
+      "fecha": "2025-11-16T15:00:07.896Z",
+      "productos": [
+        {
+          "nombre": "Cuaderno A4 Tapa Dura",
+          "cantidad": 1,
+          "precio_unitario": 1500,
+          "subtotal": 1500
+        }
+      ],
+      "subtotal": 1500,
+      "descuento": 0,
+      "delivery": 0,
+      "total": 1500,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado"
+    },
+    {
+      "id": "PED-003",
+      "cliente": "5491150246569@c.us",
+      "nombre": "Alberto Livia",
+      "fecha": "2025-11-16T15:49:25.130Z",
+      "productos": [
+        {
+          "nombre": "Lapicera Azul",
+          "cantidad": 5,
+          "precio_unitario": 200,
+          "subtotal": 1000
+        },
+        {
+          "nombre": "Cuaderno A4 Tapa Dura",
+          "cantidad": 2,
+          "precio_unitario": 1500,
+          "subtotal": 3000
+        }
+      ],
+      "subtotal": 4000,
+      "descuento": 0,
+      "delivery": 0,
+      "total": 4000,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado"
+    },
+    {
+      "id": "PED-004",
+      "cliente": "5491150246569@c.us",
+      "nombre": "Alberto Livia",
+      "fecha": "2025-11-16T16:00:57.147Z",
+      "productos": [
+        {
+          "nombre": "Cuaderno A4 Tapa Dura",
+          "cantidad": 2,
+          "precio_unitario": 1500,
+          "subtotal": 3000
+        },
+        {
+          "nombre": "Globo Latex",
+          "cantidad": 2,
+          "precio_unitario": 50,
+          "subtotal": 100
+        }
+      ],
+      "subtotal": 3100,
+      "descuento": 0,
+      "delivery": 0,
+      "total": 3100,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado"
+    },
+    {
+      "id": "PED-005",
+      "cliente": "5491150246569@c.us",
+      "nombre": "Alberto Livia",
+      "fecha": "2025-11-17T15:11:51.850Z",
+      "productos": [
+        {
+          "nombre": "Cartuchera Simple",
+          "cantidad": 3,
+          "precio_unitario": 800,
+          "subtotal": 2400
+        },
+        {
+          "nombre": "Anillado Simple",
+          "cantidad": 3,
+          "precio_unitario": 300,
+          "subtotal": 900
+        }
+      ],
+      "subtotal": 3300,
+      "descuento": 0,
+      "delivery": 0,
+      "total": 3300,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado"
+    },
+    {
+      "id": "PED-006",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-18T22:18:07.939Z",
+      "productos": [
+        {
+          "nombre": "Alcohol",
+          "cantidad": 1,
+          "precio_unitario": 5300,
+          "subtotal": 5300
+        }
+      ],
+      "subtotal": 5300,
+      "descuento": 265,
+      "delivery": 0,
+      "total": 5035,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado"
+    },
+    {
+      "id": "PED-007",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-19T02:47:29.842Z",
+      "productos": [
+        {
+          "nombre": "Cuadernillo Universitario",
+          "cantidad": 1,
+          "precio_unitario": 2500,
+          "subtotal": 2500
+        },
+        {
+          "nombre": "Cuadernillo Universitario",
+          "cantidad": 3,
+          "precio_unitario": 2500,
+          "subtotal": 7500
+        }
+      ],
+      "subtotal": 10000,
+      "descuento": 0,
+      "delivery": 0,
+      "total": 10000,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado"
+    },
+    {
+      "id": "PED-008",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-19T13:33:06.917Z",
+      "productos": [
+        {
+          "nombre": "Peluche Mediano",
+          "cantidad": 1,
+          "precio_unitario": 35000,
+          "subtotal": 35000
+        }
+      ],
+      "subtotal": 35000,
+      "descuento": 0,
+      "delivery": 0,
+      "total": 35000,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado"
+    },
+    {
+      "id": "PED-009",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-19T21:12:46.418Z",
+      "productos": [
+        {
+          "nombre": "Alcohol",
+          "cantidad": 1,
+          "precio_unitario": 5300,
+          "subtotal": 5300
+        }
+      ],
+      "subtotal": 5300,
+      "descuento": 0,
+      "delivery": 0,
+      "total": 5300,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado"
+    },
+    {
+      "id": "PED-010",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-21T14:57:52.742Z",
+      "productos": [
+        {
+          "nombre": "Cargador De Iphone",
+          "cantidad": 1,
+          "precio_unitario": 45000,
+          "subtotal": 45000
+        }
+      ],
+      "subtotal": 45000,
+      "descuento": 0,
+      "descuento_porcentaje": 0,
+      "descuento_descripcion": null,
+      "delivery": 0,
+      "total": 45000,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado",
+      "estado_pago": "pendiente"
+    },
+    {
+      "id": "PED-011",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-21T15:07:42.104Z",
+      "productos": [
+        {
+          "nombre": "Alcohol",
+          "cantidad": 1,
+          "precio_unitario": 2000,
+          "subtotal": 2000
+        }
+      ],
+      "subtotal": 2000,
+      "descuento": 0,
+      "descuento_porcentaje": 0,
+      "descuento_descripcion": null,
+      "delivery": 0,
+      "total": 2000,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado",
+      "estado_pago": "pendiente"
+    },
+    {
+      "id": "PED-012",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-21T15:21:33.420Z",
+      "productos": [
+        {
+          "nombre": "Lapicera Bic",
+          "cantidad": 1,
+          "precio_unitario": 200,
+          "subtotal": 200
+        }
+      ],
+      "subtotal": 200,
+      "descuento": 0,
+      "descuento_porcentaje": 0,
+      "descuento_descripcion": null,
+      "delivery": 0,
+      "total": 200,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado",
+      "estado_pago": "pendiente"
+    },
+    {
+      "id": "PED-013",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-21T15:26:16.237Z",
+      "productos": [
+        {
+          "nombre": "Auto A Control Remoto",
+          "cantidad": 1,
+          "precio_unitario": 23000,
+          "subtotal": 23000
+        }
+      ],
+      "subtotal": 23000,
+      "descuento": 0,
+      "descuento_porcentaje": 0,
+      "descuento_descripcion": null,
+      "delivery": 0,
+      "total": 23000,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado",
+      "estado_pago": "pendiente"
+    },
+    {
+      "id": "PED-014",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-21T15:27:12.607Z",
+      "productos": [
+        {
+          "nombre": "Lapicera Bic",
+          "cantidad": 1,
+          "precio_unitario": 200,
+          "subtotal": 200
+        }
+      ],
+      "subtotal": 200,
+      "descuento": 0,
+      "descuento_porcentaje": 0,
+      "descuento_descripcion": null,
+      "delivery": 0,
+      "total": 200,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado",
+      "estado_pago": "pendiente"
+    },
+    {
+      "id": "PED-015",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-21T15:40:24.826Z",
+      "productos": [
+        {
+          "nombre": "Lapicera Bic",
+          "cantidad": 1,
+          "precio_unitario": 200,
+          "subtotal": 200
+        }
+      ],
+      "subtotal": 200,
+      "descuento": 0,
+      "descuento_porcentaje": 0,
+      "descuento_descripcion": null,
+      "delivery": 0,
+      "total": 200,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado",
+      "estado_pago": "pendiente"
+    },
+    {
+      "id": "PED-016",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-21T15:45:12.988Z",
+      "productos": [
+        {
+          "nombre": "Peluche Mediano",
+          "cantidad": 1,
+          "precio_unitario": 35000,
+          "subtotal": 35000
+        }
+      ],
+      "subtotal": 35000,
+      "descuento": 0,
+      "descuento_porcentaje": 0,
+      "descuento_descripcion": null,
+      "delivery": 0,
+      "total": 35000,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado",
+      "estado_pago": "pendiente"
+    },
+    {
+      "id": "PED-017",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-21T15:49:53.360Z",
+      "productos": [
+        {
+          "nombre": "Alcohol",
+          "cantidad": 1,
+          "precio_unitario": 2000,
+          "subtotal": 2000
+        }
+      ],
+      "subtotal": 2000,
+      "descuento": 0,
+      "descuento_porcentaje": 0,
+      "descuento_descripcion": null,
+      "delivery": 0,
+      "total": 2000,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado",
+      "estado_pago": "pendiente"
+    },
+    {
+      "id": "PED-018",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-21T15:52:54.917Z",
+      "productos": [
+        {
+          "nombre": "Lapicera Bic",
+          "cantidad": 2,
+          "precio_unitario": 200,
+          "subtotal": 400
+        }
+      ],
+      "subtotal": 400,
+      "descuento": 0,
+      "descuento_porcentaje": 0,
+      "descuento_descripcion": null,
+      "delivery": 0,
+      "total": 400,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado",
+      "estado_pago": "pendiente"
+    },
+    {
+      "id": "PED-019",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-21T15:54:42.338Z",
+      "productos": [
+        {
+          "nombre": "Lapicera Bic",
+          "cantidad": 2,
+          "precio_unitario": 200,
+          "subtotal": 400
+        }
+      ],
+      "subtotal": 400,
+      "descuento": 0,
+      "descuento_porcentaje": 0,
+      "descuento_descripcion": null,
+      "delivery": 0,
+      "total": 400,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado",
+      "estado_pago": "pendiente"
+    },
+    {
+      "id": "PED-020",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-21T15:58:11.929Z",
+      "productos": [
+        {
+          "nombre": "Lapicera Bic",
+          "cantidad": 2,
+          "precio_unitario": 200,
+          "subtotal": 400
+        }
+      ],
+      "subtotal": 400,
+      "descuento": 0,
+      "descuento_porcentaje": 0,
+      "descuento_descripcion": null,
+      "delivery": 0,
+      "total": 400,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado",
+      "estado_pago": "pendiente"
+    },
+    {
+      "id": "PED-021",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-21T16:06:48.924Z",
+      "productos": [
+        {
+          "nombre": "Lapicera Bic",
+          "cantidad": 2,
+          "precio_unitario": 200,
+          "subtotal": 400
+        }
+      ],
+      "subtotal": 400,
+      "descuento": 0,
+      "descuento_porcentaje": 0,
+      "descuento_descripcion": null,
+      "delivery": 0,
+      "total": 400,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado",
+      "estado_pago": "pendiente"
+    },
+    {
+      "id": "PED-022",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-21T16:12:24.648Z",
+      "productos": [
+        {
+          "nombre": "Lapicera Bic",
+          "cantidad": 1,
+          "precio_unitario": 200,
+          "subtotal": 200
+        }
+      ],
+      "subtotal": 200,
+      "descuento": 0,
+      "descuento_porcentaje": 0,
+      "descuento_descripcion": null,
+      "delivery": 0,
+      "total": 200,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado",
+      "estado_pago": "pendiente"
+    },
+    {
+      "id": "PED-023",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-21T16:20:38.749Z",
+      "productos": [
+        {
+          "nombre": "Lapicera Bic",
+          "cantidad": 1,
+          "precio_unitario": 200,
+          "subtotal": 200
+        }
+      ],
+      "subtotal": 200,
+      "descuento": 0,
+      "descuento_porcentaje": 0,
+      "descuento_descripcion": null,
+      "delivery": 0,
+      "total": 200,
+      "tipo_entrega": "retiro",
+      "estado": "confirmado",
+      "estado_pago": "pendiente"
+    },
+    {
+      "id": "PED-024",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-21T16:28:01.988Z",
+      "productos": [
+        {
+          "nombre": "Lapicera Bic",
+          "cantidad": 1,
+          "precio_unitario": 200,
+          "subtotal": 200
+        }
+      ],
+      "subtotal": 200,
+      "descuento": 0,
+      "descuento_porcentaje": 0,
+      "descuento_descripcion": null,
+      "delivery": 0,
+      "total": 200,
+      "tipo_entrega": "retiro",
+      "estado": "completado",
+      "estado_pago": "pendiente",
+      "actualizado_en": "2025-11-22T18:47:31.790Z"
+    },
+    {
+      "id": "PED-025",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-21T16:31:37.735Z",
+      "productos": [
+        {
+          "nombre": "Lapicera Bic",
+          "cantidad": 2,
+          "precio_unitario": 200,
+          "subtotal": 400
+        }
+      ],
+      "subtotal": 400,
+      "descuento": 0,
+      "descuento_porcentaje": 0,
+      "descuento_descripcion": null,
+      "delivery": 0,
+      "total": 400,
+      "tipo_entrega": "retiro",
+      "estado": "completado",
+      "estado_pago": "pendiente",
+      "actualizado_en": "2025-11-22T18:47:26.510Z"
+    },
+    {
+      "id": "PED-026",
+      "cliente": "5491160208947@c.us",
+      "nombre": "Patricia",
+      "fecha": "2025-11-21T16:35:08.214Z",
+      "productos": [
+        {
+          "nombre": "Lapicera Bic",
+          "cantidad": 1,
+          "precio_unitario": 200,
+          "subtotal": 200
+        }
+      ],
+      "subtotal": 200,
+      "descuento": 0,
+      "descuento_porcentaje": 0,
+      "descuento_descripcion": null,
+      "delivery": 0,
+      "total": 200,
+      "tipo_entrega": "retiro",
+      "estado": "completado",
+      "estado_pago": "pendiente",
+      "actualizado_en": "2025-11-22T18:29:43.930Z"
+    }
+  ]
+}
