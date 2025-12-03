@@ -1,13 +1,15 @@
 ﻿import { env } from './config/env';
 import { logger } from './utils/logger';
+import { whatsappService } from './services/whatsapp.service';
 
 async function main() {
   try {
-    logger. info('Iniciando BOTSITOT.. .');
+    logger.info('Iniciando BOTSITOT.. .');
     logger.info('Entorno: ' + env.NODE_ENV);
     logger.info('Puerto: ' + env.PORT);
 
-    // TODO: Inicializar servicios
+    // Inicializar WhatsApp
+    await whatsappService.initialize();
 
     logger.success('BOTSITOT iniciado correctamente');
   } catch (error) {
