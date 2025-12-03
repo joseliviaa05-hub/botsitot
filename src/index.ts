@@ -1,17 +1,30 @@
-﻿import { env } from './config/env';
+import { env } from './config/env';
 import { logger } from './utils/logger';
 import { whatsappService } from './services/whatsapp.service';
+import { server } from './server';
 
 async function main() {
   try {
-    logger.info('Iniciando BOTSITOT.. .');
+    logger.info('========================================');
+    logger.info('    BOTSITOT v2. 0 - Iniciando...      ');
+    logger.info('========================================');
     logger.info('Entorno: ' + env.NODE_ENV);
     logger.info('Puerto: ' + env.PORT);
 
     // Inicializar WhatsApp
+    logger.info('');
+    logger.info('[1/2] Inicializando WhatsApp...');
     await whatsappService.initialize();
 
-    logger.success('BOTSITOT iniciado correctamente');
+    // Inicializar servidor Express
+    logger.info('');
+    logger.info('[2/2] Inicializando servidor API...');
+    server.start();
+
+    logger.info('');
+    logger.success('========================================');
+    logger.success('  BOTSITOT v2. 0 INICIADO EXITOSAMENTE  ');
+    logger.success('========================================');
   } catch (error) {
     logger.error('Error al iniciar BOTSITOT', error as Error);
     process.exit(1);
