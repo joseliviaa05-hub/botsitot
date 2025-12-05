@@ -1,148 +1,184 @@
+/**
+ * ═══════════════════════════════════════════════════════════════
+ * CLIENTES CONTROLLER - Con Prisma
+ * ═══════════════════════════════════════════════════════════════
+ */
+
 import { Request, Response } from 'express';
-import { logger } from '../utils/logger';
-import fs from 'fs';
-import path from 'path';
-import { env } from '../config/env';
+import { PrismaClient } from '@prisma/client';
 
-class ClientesController {
-  private clientesFile: string;
+const prisma = new PrismaClient();
 
-  constructor() {
-    this.clientesFile = path. join(env.DATA_DIR, 'clientes.json');
-  }
-
-  private readFullData(): any {
+export class ClientesController {
+  /**
+   * GET /api/clientes
+   */
+  async getAll(req: Request, res: Response) {
     try {
-      if (fs.existsSync(this. clientesFile)) {
-        const data = fs.readFileSync(this.clientesFile, 'utf8');
-        return JSON. parse(data);
-      }
-      return { clientes: [] };
-    } catch (error) {
-      logger.error('Error leyendo archivo clientes', error as Error);
-      return { clientes: [] };
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req. query.limit as string) || 50;
+      const skip = (page - 1) * limit;
+
+      const [clientes, total] = await Promise.all([
+        prisma.cliente.findMany({
+          skip,
+          take: limit,
+          orderBy: { ultimaInteraccion: 'desc' },
+          include: {
+            _count: {
+              select: { pedidos: true }
+            }
+          }
+        }),
+        prisma.cliente. count()
+      ]);
+
+      res.json({
+        success: true,
+        data: clientes,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+          hasMore: page < Math.ceil(total / limit)
+        }
+      });
+    } catch (error: any) {
+      console.error('Error obteniendo clientes:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
     }
   }
 
-  private writeFullData(fullData: any): void {
+  /**
+   * GET /api/clientes/:telefono
+   */
+  async getByTelefono(req: Request, res: Response) {
     try {
-      fs.writeFileSync(
-        this.clientesFile,
-        JSON.stringify(fullData, null, 2),
-        'utf8'
-      );
-    } catch (error) {
-      logger.error('Error escribiendo clientes', error as Error);
-      throw error;
-    }
-  }
+      const { telefono } = req.params;
 
-  getAll = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const data = this.readFullData();
-      res.json(data.clientes || []);
-    } catch (error) {
-      logger.error('Error en getAll clientes', error as Error);
-      res.status(500).json({ error: 'Error al obtener clientes' });
-    }
-  };
-
-  getById = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { id } = req.params;
-      const data = this.readFullData();
-      const clientes = data.clientes || [];
-      const cliente = clientes.find((c: any) => c.telefono === id || c.id === id);
+      const cliente = await prisma. cliente.findUnique({
+        where: { telefono },
+        include: {
+          pedidos: {
+            orderBy: { fecha: 'desc' },
+            take: 10,
+            include: {
+              items: true
+            }
+          }
+        }
+      });
 
       if (!cliente) {
-        res. status(404).json({ error: 'Cliente no encontrado' });
-        return;
+        return res.status(404).json({
+          success: false,
+          error: 'Cliente no encontrado'
+        });
       }
 
-      res.json(cliente);
-    } catch (error) {
-      logger.error('Error en getById cliente', error as Error);
-      res.status(500).json({ error: 'Error al obtener cliente' });
+      res. json({
+        success: true,
+        data: cliente
+      });
+    } catch (error: any) {
+      console.error('Error obteniendo cliente:', error);
+      res.status(500). json({
+        success: false,
+        error: error.message
+      });
     }
-  };
+  }
 
-  create = async (req: Request, res: Response): Promise<void> => {
+  /**
+   * POST /api/clientes
+   */
+  async create(req: Request, res: Response) {
     try {
-      const data = this.readFullData();
-      const clientes = data.clientes || [];
-      
-      const nuevoCliente = {
-        id: 'CLI-' + Date.now(),
-        ...req.body,
-        fecha_registro: new Date().toISOString(),
-        ultima_interaccion: new Date(). toISOString(),
-        total_pedidos: 0,
-        total_gastado: 0
-      };
+      const { telefono, nombre } = req.body;
 
-      clientes. push(nuevoCliente);
-      data.clientes = clientes;
-      
-      this.writeFullData(data);
-
-      logger.success('Cliente creado: ' + nuevoCliente.id);
-      res. status(201).json(nuevoCliente);
-    } catch (error) {
-      logger.error('Error en create cliente', error as Error);
-      res.status(500).json({ error: 'Error al crear cliente' });
-    }
-  };
-
-  update = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { id } = req.params;
-      const data = this.readFullData();
-      const clientes = data.clientes || [];
-      const index = clientes. findIndex((c: any) => c.telefono === id || c.id === id);
-
-      if (index === -1) {
-        res.status(404).json({ error: 'Cliente no encontrado' });
-        return;
+      if (!telefono || !nombre) {
+        return res.status(400).json({
+          success: false,
+          error: 'Teléfono y nombre son requeridos'
+        });
       }
 
-      clientes[index] = {
-        ...clientes[index],
-        ...req. body
-      };
+      const cliente = await prisma.cliente.create({
+        data: {
+          telefono,
+          nombre
+        }
+      });
 
-      data.clientes = clientes;
-      this.writeFullData(data);
-
-      logger.success('Cliente actualizado: ' + id);
-      res.json(clientes[index]);
-    } catch (error) {
-      logger.error('Error en update cliente', error as Error);
-      res.status(500).json({ error: 'Error al actualizar cliente' });
+      res.status(201).json({
+        success: true,
+        data: cliente
+      });
+    } catch (error: any) {
+      console.error('Error creando cliente:', error);
+      res.status(400).json({
+        success: false,
+        error: error.message
+      });
     }
-  };
+  }
 
-  delete = async (req: Request, res: Response): Promise<void> => {
+  /**
+   * PUT /api/clientes/:id
+   */
+  async update(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const data = this.readFullData();
-      const clientes = data.clientes || [];
-      const filtered = clientes.filter((c: any) => c.telefono !== id && c.id !== id);
+      const { nombre, telefono } = req.body;
 
-      if (clientes.length === filtered.length) {
-        res.status(404). json({ error: 'Cliente no encontrado' });
-        return;
-      }
+      const cliente = await prisma.cliente. update({
+        where: { id },
+        data: {
+          ...(nombre && { nombre }),
+          ...(telefono && { telefono })
+        }
+      });
 
-      data.clientes = filtered;
-      this. writeFullData(data);
-
-      logger.success('Cliente eliminado: ' + id);
-      res. json({ message: 'Cliente eliminado correctamente' });
-    } catch (error) {
-      logger.error('Error en delete cliente', error as Error);
-      res. status(500).json({ error: 'Error al eliminar cliente' });
+      res.json({
+        success: true,
+        data: cliente
+      });
+    } catch (error: any) {
+      console.error('Error actualizando cliente:', error);
+      res.status(400).json({
+        success: false,
+        error: error.message
+      });
     }
-  };
+  }
+
+  /**
+   * DELETE /api/clientes/:id
+   */
+  async delete(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+
+      await prisma.cliente.delete({
+        where: { id }
+      });
+
+      res.json({
+        success: true,
+        message: 'Cliente eliminado'
+      });
+    } catch (error: any) {
+      console.error('Error eliminando cliente:', error);
+      res.status(400).json({
+        success: false,
+        error: error.message
+      });
+    }
+  }
 }
 
-export const clientesController = new ClientesController();
+export default new ClientesController();

@@ -1,136 +1,238 @@
-﻿import { Request, Response } from 'express';
-import { logger } from '../utils/logger';
-import fs from 'fs';
-import path from 'path';
-import { env } from '../config/env';
+﻿/**
+ * ═══════════════════════════════════════════════════════════════
+ * PRODUCTOS CONTROLLER - Con Prisma
+ * ═══════════════════════════════════════════════════════════════
+ */
 
-class ProductosController {
-  private productosFile: string;
+import { Request, Response } from 'express';
+import { PrismaClient, Categoria } from '@prisma/client';
 
-  constructor() {
-    this.productosFile = path.join(env.DATA_DIR, 'productos.json');
-  }
+const prisma = new PrismaClient();
 
-  private readProductos(): any[] {
+export class ProductosController {
+  /**
+   * GET /api/productos
+   */
+  async getAll(req: Request, res: Response) {
     try {
-      if (fs.existsSync(this.productosFile)) {
-        const data = fs.readFileSync(this.productosFile, 'utf8');
-        return JSON.parse(data);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const categoria = req.query.categoria as Categoria;
+      const search = req.query.search as string;
+      const skip = (page - 1) * limit;
+
+      const where: any = {};
+      
+      if (categoria) {
+        where.categoria = categoria;
       }
-      return [];
-    } catch (error) {
-      logger. error('Error leyendo productos', error as Error);
-      return [];
+      
+      if (search) {
+        where.OR = [
+          { nombre: { contains: search, mode: 'insensitive' } },
+          { subcategoria: { contains: search, mode: 'insensitive' } }
+        ];
+      }
+
+      const [productos, total] = await Promise.all([
+        prisma.producto.findMany({
+          where,
+          skip,
+          take: limit,
+          include: {
+            imagenes: true
+          },
+          orderBy: { nombre: 'asc' }
+        }),
+        prisma.producto. count({ where })
+      ]);
+
+      res.json({
+        success: true,
+        data: productos,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+          hasMore: page < Math.ceil(total / limit)
+        }
+      });
+    } catch (error: any) {
+      console.error('Error obteniendo productos:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
     }
   }
 
-  private writeProductos(productos: any[]): void {
-    try {
-      fs.  writeFileSync(
-        this.productosFile,
-        JSON.stringify(productos, null, 2),
-        'utf8'
-      );
-    } catch (error) {
-      logger.error('Error escribiendo productos', error as Error);
-      throw error;
-    }
-  }
-
-  getAll = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const productos = this.  readProductos();
-      res. json(productos);
-    } catch (error) {
-      logger. error('Error en getAll productos', error as Error);
-      res.status(500).json({ error: 'Error al obtener productos' });
-    }
-  };
-
-  getById = async (req: Request, res: Response): Promise<void> => {
+  /**
+   * GET /api/productos/:id
+   */
+  async getById(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const productos = this.readProductos();
-      const producto = productos.find((p: any) => p.id === id);
+
+      const producto = await prisma. producto.findUnique({
+        where: { id },
+        include: {
+          imagenes: true
+        }
+      });
 
       if (!producto) {
-        res.status(404).json({ error: 'Producto no encontrado' });
-        return;
+        return res.status(404).json({
+          success: false,
+          error: 'Producto no encontrado'
+        });
       }
 
-      res.json(producto);
-    } catch (error) {
-      logger.error('Error en getById producto', error as Error);
-      res.status(500).json({ error: 'Error al obtener producto' });
+      res.json({
+        success: true,
+        data: producto
+      });
+    } catch (error: any) {
+      console.error('Error obteniendo producto:', error);
+      res. status(500).json({
+        success: false,
+        error: error.message
+      });
     }
-  };
+  }
 
-  create = async (req: Request, res: Response): Promise<void> => {
+  /**
+   * POST /api/productos
+   */
+  async create(req: Request, res: Response) {
     try {
-      const productos = this.readProductos();
-      const nuevoProducto = {
-        id: 'PROD-' + Date.now(),
-        ...req.body,
-        fechaCreacion: new Date().toISOString()
-      };
+      const { nombre, categoria, subcategoria, precio, precioDesde, unidad, stock, codigoBarras } = req. body;
 
-      productos.push(nuevoProducto);
-      this.writeProductos(productos);
-
-      logger.success('Producto creado: ' + nuevoProducto.id);
-      res.status(201).json(nuevoProducto);
-    } catch (error) {
-      logger.error('Error en create producto', error as Error);
-      res.status(500).  json({ error: 'Error al crear producto' });
-    }
-  };
-
-  update = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { id } = req.  params;
-      const productos = this.readProductos();
-      const index = productos.  findIndex((p: any) => p.id === id);
-
-      if (index === -1) {
-        res.status(404). json({ error: 'Producto no encontrado' });
-        return;
+      if (!nombre || !categoria || !subcategoria || !precio) {
+        return res.status(400).json({
+          success: false,
+          error: 'Nombre, categoría, subcategoría y precio son requeridos'
+        });
       }
 
-      productos[index] = {
-        ... productos[index],
-        ...req.body
-      };
+      const producto = await prisma.producto.create({
+        data: {
+          nombre,
+          categoria,
+          subcategoria,
+          precio,
+          precioDesde,
+          unidad,
+          stock: stock !== undefined ? stock : true,
+          codigoBarras
+        },
+        include: {
+          imagenes: true
+        }
+      });
 
-      this.  writeProductos(productos);
-
-      logger.success('Producto actualizado: ' + id);
-      res.json(productos[index]);
-    } catch (error) {
-      logger.error('Error en update producto', error as Error);
-      res.status(500).json({ error: 'Error al actualizar producto' });
+      res.status(201).json({
+        success: true,
+        data: producto
+      });
+    } catch (error: any) {
+      console.error('Error creando producto:', error);
+      res.status(400). json({
+        success: false,
+        error: error.message
+      });
     }
-  };
+  }
 
-  delete = async (req: Request, res: Response): Promise<void> => {
+  /**
+   * PUT /api/productos/:id
+   */
+  async update(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { nombre, precio, precioDesde, unidad, stock, codigoBarras } = req.body;
+
+      const producto = await prisma.producto.update({
+        where: { id },
+        data: {
+          ...(nombre && { nombre }),
+          ...(precio !== undefined && { precio }),
+          ...(precioDesde !== undefined && { precioDesde }),
+          ...(unidad && { unidad }),
+          ...(stock !== undefined && { stock }),
+          ...(codigoBarras && { codigoBarras })
+        },
+        include: {
+          imagenes: true
+        }
+      });
+
+      res.json({
+        success: true,
+        data: producto
+      });
+    } catch (error: any) {
+      console.error('Error actualizando producto:', error);
+      res.status(400).json({
+        success: false,
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * DELETE /api/productos/:id
+   */
+  async delete(req: Request, res: Response) {
     try {
       const { id } = req. params;
-      const productos = this.readProductos();
-      const filtered = productos.filter((p: any) => p.id !== id);
 
-      if (productos.length === filtered.length) {
-        res.status(404). json({ error: 'Producto no encontrado' });
-        return;
-      }
+      await prisma. producto.delete({
+        where: { id }
+      });
 
-      this. writeProductos(filtered);
-
-      logger.success('Producto eliminado: ' + id);
-      res.json({ message: 'Producto eliminado correctamente' });
-    } catch (error) {
-      logger.error('Error en delete producto', error as Error);
-      res. status(500).json({ error: 'Error al eliminar producto' });
+      res.json({
+        success: true,
+        message: 'Producto eliminado'
+      });
+    } catch (error: any) {
+      console.error('Error eliminando producto:', error);
+      res.status(400).json({
+        success: false,
+        error: error.message
+      });
     }
-  };
+  }
+
+  /**
+   * GET /api/productos/categoria/:categoria
+   */
+  async getByCategoria(req: Request, res: Response) {
+    try {
+      const { categoria } = req.params;
+
+      const productos = await prisma.producto.findMany({
+        where: {
+          categoria: categoria as Categoria
+        },
+        include: {
+          imagenes: true
+        },
+        orderBy: { nombre: 'asc' }
+      });
+
+      res.json({
+        success: true,
+        data: productos
+      });
+    } catch (error: any) {
+      console.error('Error obteniendo productos por categoría:', error);
+      res.status(500). json({
+        success: false,
+        error: error.message
+      });
+    }
+  }
 }
 
-export const productosController = new ProductosController();
+export default new ProductosController();

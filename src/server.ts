@@ -92,5 +92,6 @@ class Server {
   }
 }
 
+// Crear e iniciar el servidor
 export const server = new Server();
-
+server.start();

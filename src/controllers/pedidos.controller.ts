@@ -1,159 +1,292 @@
-﻿import { Request, Response } from 'express';
-import { logger } from '../utils/logger';
-import fs from 'fs';
-import path from 'path';
-import { env } from '../config/env';
+﻿/**
+ * ═══════════════════════════════════════════════════════════════
+ * PEDIDOS CONTROLLER - Con Prisma
+ * ═══════════════════════════════════════════════════════════════
+ */
 
-class PedidosController {
-  private pedidosFile: string;
+import { Request, Response } from 'express';
+import { PrismaClient, EstadoPedido, EstadoPago, TipoEntrega } from '@prisma/client';
 
-  constructor() {
-    this.pedidosFile = path.join(env.DATA_DIR, 'pedidos.json');
-  }
+const prisma = new PrismaClient();
 
-  private readPedidos(): any[] {
+export class PedidosController {
+  /**
+   * GET /api/pedidos
+   */
+  async getAll(req: Request, res: Response) {
     try {
-      if (fs.existsSync(this.pedidosFile)) {
-        const data = fs.readFileSync(this.pedidosFile, 'utf8');
-        const parsed = JSON.parse(data);
-        
-        // Si el JSON tiene estructura {pedidos: [...]}
-        if (parsed.pedidos && Array.isArray(parsed.pedidos)) {
-          return parsed.pedidos;
-        }
-        
-        // Si es array directo
-        if (Array.isArray(parsed)) {
-          return parsed;
-        }
-        
-        return [];
+      const page = parseInt(req. query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const estado = req.query.estado as EstadoPedido;
+      const skip = (page - 1) * limit;
+
+      const where: any = {};
+      if (estado) {
+        where. estado = estado;
       }
-      return [];
-    } catch (error) {
-      logger.error('Error leyendo pedidos', error as Error);
-      return [];
+
+      const [pedidos, total] = await Promise.all([
+        prisma.pedido.findMany({
+          where,
+          skip,
+          take: limit,
+          include: {
+            cliente: true,
+            items: {
+              include: {
+                producto: true
+              }
+            }
+          },
+          orderBy: { fecha: 'desc' }
+        }),
+        prisma.pedido.count({ where })
+      ]);
+
+      res.json({
+        success: true,
+        data: pedidos,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+          hasMore: page < Math.ceil(total / limit)
+        }
+      });
+    } catch (error: any) {
+      console.error('Error obteniendo pedidos:', error);
+      res.status(500). json({
+        success: false,
+        error: error.message
+      });
     }
   }
 
-  private writePedidos(pedidos: any[]): void {
-    try {
-      // Leer estructura actual para mantener campos adicionales
-      let estructura: any = { pedidos: [], ultimo_numero: 0 };
-      
-      if (fs.existsSync(this.pedidosFile)) {
-        const data = fs.readFileSync(this. pedidosFile, 'utf8');
-        estructura = JSON. parse(data);
-      }
-      
-      // Actualizar pedidos manteniendo resto de campos
-      estructura.pedidos = pedidos;
-      
-      fs.writeFileSync(
-        this.pedidosFile,
-        JSON.stringify(estructura, null, 2),
-        'utf8'
-      );
-    } catch (error) {
-      logger.error('Error escribiendo pedidos', error as Error);
-      throw error;
-    }
-  }
-
-  getAll = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const pedidos = this.readPedidos();
-      res.json(pedidos);
-    } catch (error) {
-      logger.error('Error en getAll pedidos', error as Error);
-      res.status(500). json({ error: 'Error al obtener pedidos' });
-    }
-  };
-
-  getById = async (req: Request, res: Response): Promise<void> => {
+  /**
+   * GET /api/pedidos/:id
+   */
+  async getById(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const pedidos = this. readPedidos();
-      const pedido = pedidos.find((p: any) => p.id === id);
+
+      const pedido = await prisma.pedido.findUnique({
+        where: { id },
+        include: {
+          cliente: true,
+          items: {
+            include: {
+              producto: true
+            }
+          }
+        }
+      });
 
       if (!pedido) {
-        res.status(404).json({ error: 'Pedido no encontrado' });
-        return;
+        return res.status(404).json({
+          success: false,
+          error: 'Pedido no encontrado'
+        });
       }
 
-      res. json(pedido);
-    } catch (error) {
-      logger.error('Error en getById pedido', error as Error);
-      res.status(500).json({ error: 'Error al obtener pedido' });
+      res.json({
+        success: true,
+        data: pedido
+      });
+    } catch (error: any) {
+      console.error('Error obteniendo pedido:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
     }
-  };
+  }
 
-  create = async (req: Request, res: Response): Promise<void> => {
+  /**
+   * POST /api/pedidos
+   */
+  async create(req: Request, res: Response) {
     try {
-      const pedidos = this.readPedidos();
-      const nuevoPedido = {
-        id: 'PED-' + Date. now(),
-        ...req.body,
-        fecha: new Date().toISOString()
-      };
+      const { clienteId, items, tipoEntrega, estadoPago } = req.body;
 
-      pedidos. push(nuevoPedido);
-      this.writePedidos(pedidos);
+      if (!clienteId || !items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'clienteId e items son requeridos'
+        });
+      }
 
-      logger.success('Pedido creado: ' + nuevoPedido.id);
-      res.status(201).json(nuevoPedido);
-    } catch (error) {
-      logger.error('Error en create pedido', error as Error);
-      res.status(500). json({ error: 'Error al crear pedido' });
+      // Generar número de pedido
+      const ultimoPedido = await prisma. pedido.findFirst({
+        orderBy: { fecha: 'desc' },
+        select: { numero: true }
+      });
+
+      let numeroPedido = 1;
+      if (ultimoPedido) {
+        const match = ultimoPedido.numero. match(/PED-(\d+)/);
+        if (match) {
+          numeroPedido = parseInt(match[1], 10) + 1;
+        }
+      }
+      const numero = `PED-${String(numeroPedido).padStart(3, '0')}`;
+
+      // Calcular totales
+      let subtotal = 0;
+      const itemsData: any[] = [];
+
+      for (const item of items) {
+        const producto = await prisma.producto.findUnique({
+          where: { id: item.productoId }
+        });
+
+        if (!producto) {
+          return res.status(400).json({
+            success: false,
+            error: `Producto ${item.productoId} no encontrado`
+          });
+        }
+
+        const itemSubtotal = Number(producto.precio) * item.cantidad;
+        subtotal += itemSubtotal;
+
+        itemsData.push({
+          productoId: producto.id,
+          nombre: producto.nombre,
+          cantidad: item.cantidad,
+          precioUnitario: producto.precio,
+          subtotal: itemSubtotal
+        });
+      }
+
+      const descuento = 0;
+      const delivery = tipoEntrega === 'DELIVERY' ? 500 : 0;
+      const total = subtotal - descuento + delivery;
+
+      // Obtener cliente
+      const cliente = await prisma.cliente.findUnique({
+        where: { id: clienteId }
+      });
+
+      if (!cliente) {
+        return res.status(400).json({
+          success: false,
+          error: 'Cliente no encontrado'
+        });
+      }
+
+      // Crear pedido con transacción
+      const pedido = await prisma.$transaction(async (tx) => {
+        const nuevoPedido = await tx.pedido.create({
+          data: {
+            numero,
+            clienteId,
+            nombreCliente: cliente.nombre,
+            subtotal,
+            descuento,
+            delivery,
+            total,
+            tipoEntrega: tipoEntrega as TipoEntrega || 'RETIRO',
+            estadoPago: estadoPago as EstadoPago || 'PENDIENTE',
+            items: {
+              create: itemsData
+            }
+          },
+          include: {
+            cliente: true,
+            items: {
+              include: {
+                producto: true
+              }
+            }
+          }
+        });
+
+        // Actualizar estadísticas del cliente
+        await tx.cliente.update({
+          where: { id: clienteId },
+          data: {
+            totalPedidos: { increment: 1 },
+            totalGastado: { increment: total }
+          }
+        });
+
+        return nuevoPedido;
+      });
+
+      res.status(201).json({
+        success: true,
+        data: pedido
+      });
+    } catch (error: any) {
+      console. error('Error creando pedido:', error);
+      res.status(400).json({
+        success: false,
+        error: error. message
+      });
     }
-  };
+  }
 
-  update = async (req: Request, res: Response): Promise<void> => {
+  /**
+   * PUT /api/pedidos/:id
+   */
+  async update(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const pedidos = this.readPedidos();
-      const index = pedidos.findIndex((p: any) => p.id === id);
+      const { estado, estadoPago } = req.body;
 
-      if (index === -1) {
-        res. status(404).json({ error: 'Pedido no encontrado' });
-        return;
-      }
+      const pedido = await prisma.pedido.update({
+        where: { id },
+        data: {
+          ...(estado && { estado: estado as EstadoPedido }),
+          ...(estadoPago && { estadoPago: estadoPago as EstadoPago })
+        },
+        include: {
+          cliente: true,
+          items: {
+            include: {
+              producto: true
+            }
+          }
+        }
+      });
 
-      pedidos[index] = {
-        ...pedidos[index],
-        ...req.body
-      };
-
-      this.writePedidos(pedidos);
-
-      logger.success('Pedido actualizado: ' + id);
-      res.json(pedidos[index]);
-    } catch (error) {
-      logger.error('Error en update pedido', error as Error);
-      res.status(500).json({ error: 'Error al actualizar pedido' });
+      res.json({
+        success: true,
+        data: pedido
+      });
+    } catch (error: any) {
+      console.error('Error actualizando pedido:', error);
+      res.status(400).json({
+        success: false,
+        error: error.message
+      });
     }
-  };
+  }
 
-  delete = async (req: Request, res: Response): Promise<void> => {
+  /**
+   * DELETE /api/pedidos/:id
+   */
+  async delete(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const pedidos = this. readPedidos();
-      const filtered = pedidos.filter((p: any) => p.id !== id);
 
-      if (pedidos.length === filtered.length) {
-        res.status(404).json({ error: 'Pedido no encontrado' });
-        return;
-      }
+      await prisma.pedido.delete({
+        where: { id }
+      });
 
-      this.writePedidos(filtered);
-
-      logger.success('Pedido eliminado: ' + id);
-      res.json({ message: 'Pedido eliminado correctamente' });
-    } catch (error) {
-      logger.error('Error en delete pedido', error as Error);
-      res.status(500).json({ error: 'Error al eliminar pedido' });
+      res.json({
+        success: true,
+        message: 'Pedido eliminado'
+      });
+    } catch (error: any) {
+      console.error('Error eliminando pedido:', error);
+      res.status(400).json({
+        success: false,
+        error: error.message
+      });
     }
-  };
+  }
 }
 
-export const pedidosController = new PedidosController();
+export default new PedidosController();
