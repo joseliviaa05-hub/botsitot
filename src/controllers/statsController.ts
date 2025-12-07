@@ -33,7 +33,7 @@ export class StatsController {
             }
           }
         }),
-        prisma.pedido.aggregate({
+        prisma. pedido.aggregate({
           _sum: {
             total: true
           }
@@ -43,9 +43,9 @@ export class StatsController {
         })
       ]);
 
-      res. json({
+      res.json({
         success: true,
-        data: {
+        stats: { // ← Cambiado de "data" a "stats"
           clientes: {
             total: totalClientes
           },
@@ -62,7 +62,7 @@ export class StatsController {
       });
     } catch (error: any) {
       console.error('Error obteniendo estadísticas:', error);
-      res.status(500). json({
+      res.status(500).json({
         success: false,
         error: error.message
       });

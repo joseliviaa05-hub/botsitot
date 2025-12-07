@@ -15,8 +15,8 @@ export class PedidosController {
    */
   async getAll(req: Request, res: Response) {
     try {
-      const page = parseInt(req. query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 50;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req. query.limit as string) || 50;
       const estado = req.query.estado as EstadoPedido;
       const skip = (page - 1) * limit;
 
@@ -45,7 +45,7 @@ export class PedidosController {
 
       res.json({
         success: true,
-        data: pedidos,
+        pedidos, // ← Cambiado de "data" a "pedidos"
         pagination: {
           total,
           page,
@@ -55,7 +55,7 @@ export class PedidosController {
         }
       });
     } catch (error: any) {
-      console.error('Error obteniendo pedidos:', error);
+      console. error('Error obteniendo pedidos:', error);
       res.status(500). json({
         success: false,
         error: error.message
@@ -91,10 +91,10 @@ export class PedidosController {
 
       res.json({
         success: true,
-        data: pedido
+        pedido // ← Cambiado de "data" a "pedido"
       });
     } catch (error: any) {
-      console.error('Error obteniendo pedido:', error);
+      console. error('Error obteniendo pedido:', error);
       res.status(500).json({
         success: false,
         error: error.message
@@ -107,7 +107,7 @@ export class PedidosController {
    */
   async create(req: Request, res: Response) {
     try {
-      const { clienteId, items, tipoEntrega, estadoPago } = req.body;
+      const { clienteId, items, tipoEntrega, estadoPago, delivery } = req.body;
 
       if (!clienteId || !items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({
@@ -117,7 +117,7 @@ export class PedidosController {
       }
 
       // Generar número de pedido
-      const ultimoPedido = await prisma. pedido.findFirst({
+      const ultimoPedido = await prisma.pedido.findFirst({
         orderBy: { fecha: 'desc' },
         select: { numero: true }
       });
@@ -151,17 +151,17 @@ export class PedidosController {
         subtotal += itemSubtotal;
 
         itemsData.push({
-          productoId: producto.id,
-          nombre: producto.nombre,
-          cantidad: item.cantidad,
+          productoId: producto. id,
+          nombre: producto. nombre,
+          cantidad: item. cantidad,
           precioUnitario: producto.precio,
           subtotal: itemSubtotal
         });
       }
 
       const descuento = 0;
-      const delivery = tipoEntrega === 'DELIVERY' ? 500 : 0;
-      const total = subtotal - descuento + delivery;
+      const deliveryCost = delivery !== undefined ? delivery : (tipoEntrega === 'DELIVERY' ? 500 : 0);
+      const total = subtotal - descuento + deliveryCost;
 
       // Obtener cliente
       const cliente = await prisma.cliente.findUnique({
@@ -177,14 +177,14 @@ export class PedidosController {
 
       // Crear pedido con transacción
       const pedido = await prisma.$transaction(async (tx) => {
-        const nuevoPedido = await tx.pedido.create({
+        const nuevoPedido = await tx. pedido.create({
           data: {
             numero,
             clienteId,
             nombreCliente: cliente.nombre,
             subtotal,
             descuento,
-            delivery,
+            delivery: deliveryCost,
             total,
             tipoEntrega: tipoEntrega as TipoEntrega || 'RETIRO',
             estadoPago: estadoPago as EstadoPago || 'PENDIENTE',
@@ -214,9 +214,9 @@ export class PedidosController {
         return nuevoPedido;
       });
 
-      res.status(201).json({
+      res.status(201). json({
         success: true,
-        data: pedido
+        pedido // ← Cambiado de "data" a "pedido"
       });
     } catch (error: any) {
       console. error('Error creando pedido:', error);
@@ -253,7 +253,7 @@ export class PedidosController {
 
       res.json({
         success: true,
-        data: pedido
+        pedido // ← Cambiado de "data" a "pedido"
       });
     } catch (error: any) {
       console.error('Error actualizando pedido:', error);
@@ -281,7 +281,7 @@ export class PedidosController {
       });
     } catch (error: any) {
       console.error('Error eliminando pedido:', error);
-      res.status(400).json({
+      res. status(400).json({
         success: false,
         error: error.message
       });

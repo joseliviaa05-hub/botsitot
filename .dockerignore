@@ -1,0 +1,61 @@
+# ═══════════════════════════════════════════════════════════════
+# DOCKERIGNORE - BOTSITOT
+# Archivos a ignorar en el build de Docker
+# ═══════════════════════════════════════════════════════════════
+
+# Dependencies
+node_modules
+npm-debug.log
+package-lock.json
+yarn. lock
+
+# Environment
+.env
+.env.local
+.env.*. local
+
+# WhatsApp session (se genera en runtime)
+.wwebjs_auth
+.wwebjs_cache
+whatsapp-session
+
+# Git
+.git
+.gitignore
+.github
+
+# IDE
+.vscode
+.idea
+*. swp
+*.swo
+
+# Logs
+logs
+*.log
+
+# Testing
+coverage
+.nyc_output
+
+# Build artifacts
+dist
+build
+
+# Documentation
+*. md
+! README.md
+
+# Docker
+Dockerfile
+docker-compose. yml
+. dockerignore
+
+# Database
+*. db
+*.sqlite
+data/*. json
+
+# OS
+.DS_Store
+Thumbs.db

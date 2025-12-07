@@ -49,7 +49,7 @@ export class ProductosController {
 
       res.json({
         success: true,
-        data: productos,
+        productos, // ← Cambiado de "data" a "productos"
         pagination: {
           total,
           page,
@@ -60,7 +60,7 @@ export class ProductosController {
       });
     } catch (error: any) {
       console.error('Error obteniendo productos:', error);
-      res.status(500).json({
+      res.status(500). json({
         success: false,
         error: error.message
       });
@@ -90,11 +90,11 @@ export class ProductosController {
 
       res.json({
         success: true,
-        data: producto
+        producto // ← Cambiado de "data" a "producto"
       });
     } catch (error: any) {
       console.error('Error obteniendo producto:', error);
-      res. status(500).json({
+      res.status(500).json({
         success: false,
         error: error.message
       });
@@ -106,9 +106,9 @@ export class ProductosController {
    */
   async create(req: Request, res: Response) {
     try {
-      const { nombre, categoria, subcategoria, precio, precioDesde, unidad, stock, codigoBarras } = req. body;
+      const { nombre, categoria, subcategoria, precio, precioDesde, unidad, stock, codigoBarras } = req.body;
 
-      if (!nombre || !categoria || !subcategoria || !precio) {
+      if (! nombre || !categoria || !subcategoria || !precio) {
         return res.status(400).json({
           success: false,
           error: 'Nombre, categoría, subcategoría y precio son requeridos'
@@ -133,11 +133,11 @@ export class ProductosController {
 
       res.status(201).json({
         success: true,
-        data: producto
+        producto // ← Cambiado de "data" a "producto"
       });
     } catch (error: any) {
       console.error('Error creando producto:', error);
-      res.status(400). json({
+      res.status(400).json({
         success: false,
         error: error.message
       });
@@ -169,13 +169,13 @@ export class ProductosController {
 
       res.json({
         success: true,
-        data: producto
+        producto // ← Cambiado de "data" a "producto"
       });
     } catch (error: any) {
-      console.error('Error actualizando producto:', error);
+      console. error('Error actualizando producto:', error);
       res.status(400).json({
         success: false,
-        error: error.message
+        error: error. message
       });
     }
   }
@@ -185,9 +185,9 @@ export class ProductosController {
    */
   async delete(req: Request, res: Response) {
     try {
-      const { id } = req. params;
+      const { id } = req.params;
 
-      await prisma. producto.delete({
+      await prisma.producto.delete({
         where: { id }
       });
 
@@ -197,7 +197,7 @@ export class ProductosController {
       });
     } catch (error: any) {
       console.error('Error eliminando producto:', error);
-      res.status(400).json({
+      res. status(400).json({
         success: false,
         error: error.message
       });
@@ -223,11 +223,11 @@ export class ProductosController {
 
       res.json({
         success: true,
-        data: productos
+        productos // ← Cambiado de "data" a "productos"
       });
     } catch (error: any) {
       console.error('Error obteniendo productos por categoría:', error);
-      res.status(500). json({
+      res.status(500).json({
         success: false,
         error: error.message
       });

@@ -47,7 +47,7 @@ export class WhatsAppController {
       res.status(500).json({
         success: false,
         error: 'Error al enviar mensaje',
-        message: error. message,
+        message: error.message,
       });
     }
   }
@@ -58,7 +58,7 @@ export class WhatsAppController {
    */
   async sendImage(req: Request, res: Response) {
     try {
-      const { to, imageUrl, caption } = req. body;
+      const { to, imageUrl, caption } = req.body;
 
       if (!to || !imageUrl) {
         return res.status(400).json({
@@ -67,11 +67,11 @@ export class WhatsAppController {
         });
       }
 
-      logger.info(`📤 Imagen de WhatsApp (MOCK) → ${to}: ${imageUrl}`);
+      logger. info(`📤 Imagen de WhatsApp (MOCK) → ${to}: ${imageUrl}`);
 
       await new Promise(resolve => setTimeout(resolve, 150));
 
-      res. json({
+      res.json({
         success: true,
         data: {
           messageId: `mock_img_${Date.now()}`,
@@ -98,7 +98,7 @@ export class WhatsAppController {
   async getStatus(req: Request, res: Response) {
     res.json({
       success: true,
-      data: {
+      status: { // ← Cambiado de "data" a "status"
         status: 'mock',
         connected: false,
         mode: 'development',

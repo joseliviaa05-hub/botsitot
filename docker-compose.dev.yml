@@ -1,0 +1,112 @@
+# ═══════════════════════════════════════════════════════════════
+# DOCKER COMPOSE - DESARROLLO
+# ═══════════════════════════════════════════════════════════════
+
+
+services:
+  # ─────────────────────────────────────────────────────────────
+  # PostgreSQL Database (Desarrollo)
+  # ─────────────────────────────────────────────────────────────
+  db:
+    image: postgres:14-alpine
+    container_name: botsitot-db-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: botsitot_dev
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: dev_password
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dev_user -d botsitot_dev"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - botsitot-dev-network
+
+  # ─────────────────────────────────────────────────────────────
+  # Redis Cache (Desarrollo)
+  # ─────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: botsitot-redis-dev
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_dev_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - botsitot-dev-network
+
+  # ─────────────────────────────────────────────────────────────
+  # Botsitot App (Desarrollo con Hot-Reload)
+  # ─────────────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: botsitot-app-dev
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://dev_user:dev_password@db:5432/botsitot_dev
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: development
+      PORT: 3000
+      JWT_SECRET: dev_jwt_secret_change_in_production
+      JWT_EXPIRES_IN: 7d
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-test}
+      BUSINESS_NAME: ${BUSINESS_NAME:-Botsitot Dev}
+      BUSINESS_PHONE: ${BUSINESS_PHONE:-+5491162002289}
+      DELIVERY_COST: ${DELIVERY_COST:-500}
+      NUMERO_DUENO: ${NUMERO_DUENO:-5491162002289}
+      WHITELIST: ${WHITELIST:-5491162002289}
+    volumes:
+      # ✅ MONTAR CÓDIGO FUENTE (hot-reload)
+      - ./src:/app/src:delegated
+      - ./prisma:/app/prisma:delegated
+      - ./tsconfig.json:/app/tsconfig.json:ro
+      # ✅ NO montar node_modules (usar del container)
+      - /app/node_modules
+      # Datos persistentes
+      - whatsapp_session_dev:/app/. wwebjs_auth
+      - whatsapp_cache_dev:/app/.wwebjs_cache
+      - logs_dev:/app/logs
+      - ./data:/app/data:delegated
+    ports:
+      - "3000:3000"
+      - "5555:5555"
+    networks:
+      - botsitot-dev-network
+    stdin_open: true
+    tty: true
+
+volumes:
+  postgres_dev_data:
+    name: botsitot-postgres-dev
+  redis_dev_data:
+    name: botsitot-redis-dev
+  whatsapp_session_dev:
+    name: botsitot-whatsapp-session-dev
+  whatsapp_cache_dev:
+    name: botsitot-whatsapp-cache-dev
+  logs_dev:
+    name: botsitot-logs-dev
+
+networks:
+  botsitot-dev-network:
+    name: botsitot-dev-network
+    driver: bridge

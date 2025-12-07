@@ -76,4 +76,5 @@ export interface EnvConfig {
   DATA_DIR: string;
   LOGS_DIR: string;
   BACKUP_DIR: string;
+  WHATSAPP_WHITELIST: string[];
 }

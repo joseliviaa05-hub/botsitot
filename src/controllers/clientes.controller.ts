@@ -15,12 +15,23 @@ export class ClientesController {
    */
   async getAll(req: Request, res: Response) {
     try {
-      const page = parseInt(req.query.page as string) || 1;
+      const page = parseInt(req.query. page as string) || 1;
       const limit = parseInt(req. query.limit as string) || 50;
+      const search = req.query.search as string;
       const skip = (page - 1) * limit;
+
+      const where: any = {};
+      
+      if (search) {
+        where. nombre = {
+          contains: search,
+          mode: 'insensitive'
+        };
+      }
 
       const [clientes, total] = await Promise.all([
         prisma.cliente.findMany({
+          where,
           skip,
           take: limit,
           orderBy: { ultimaInteraccion: 'desc' },
@@ -30,12 +41,12 @@ export class ClientesController {
             }
           }
         }),
-        prisma.cliente. count()
+        prisma.cliente.count({ where })
       ]);
 
       res.json({
         success: true,
-        data: clientes,
+        clientes, // ← Cambiado de "data" a "clientes"
         pagination: {
           total,
           page,
@@ -45,7 +56,7 @@ export class ClientesController {
         }
       });
     } catch (error: any) {
-      console.error('Error obteniendo clientes:', error);
+      console. error('Error obteniendo clientes:', error);
       res.status(500).json({
         success: false,
         error: error.message
@@ -82,11 +93,11 @@ export class ClientesController {
 
       res. json({
         success: true,
-        data: cliente
+        cliente // ← Cambiado de "data" a "cliente"
       });
     } catch (error: any) {
       console.error('Error obteniendo cliente:', error);
-      res.status(500). json({
+      res.status(500).json({
         success: false,
         error: error.message
       });
@@ -100,8 +111,8 @@ export class ClientesController {
     try {
       const { telefono, nombre } = req.body;
 
-      if (!telefono || !nombre) {
-        return res.status(400).json({
+      if (!telefono || ! nombre) {
+        return res. status(400).json({
           success: false,
           error: 'Teléfono y nombre son requeridos'
         });
@@ -114,13 +125,13 @@ export class ClientesController {
         }
       });
 
-      res.status(201).json({
+      res. status(201).json({
         success: true,
-        data: cliente
+        cliente // ← Cambiado de "data" a "cliente"
       });
     } catch (error: any) {
       console.error('Error creando cliente:', error);
-      res.status(400).json({
+      res.status(400). json({
         success: false,
         error: error.message
       });
@@ -128,24 +139,23 @@ export class ClientesController {
   }
 
   /**
-   * PUT /api/clientes/:id
+   * PUT /api/clientes/:telefono
    */
   async update(req: Request, res: Response) {
     try {
-      const { id } = req.params;
-      const { nombre, telefono } = req.body;
+      const { telefono } = req. params; // ← Cambiado de "id" a "telefono"
+      const { nombre } = req.body;
 
-      const cliente = await prisma.cliente. update({
-        where: { id },
+      const cliente = await prisma.cliente.update({
+        where: { telefono }, // ← Usar telefono como identificador
         data: {
-          ...(nombre && { nombre }),
-          ...(telefono && { telefono })
+          ...(nombre && { nombre })
         }
       });
 
       res.json({
         success: true,
-        data: cliente
+        cliente // ← Cambiado de "data" a "cliente"
       });
     } catch (error: any) {
       console.error('Error actualizando cliente:', error);
@@ -163,17 +173,17 @@ export class ClientesController {
     try {
       const { id } = req.params;
 
-      await prisma.cliente.delete({
+      await prisma.cliente. delete({
         where: { id }
       });
 
-      res.json({
+      res. json({
         success: true,
         message: 'Cliente eliminado'
       });
     } catch (error: any) {
       console.error('Error eliminando cliente:', error);
-      res.status(400).json({
+      res. status(400).json({
         success: false,
         error: error.message
       });
