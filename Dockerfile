@@ -100,7 +100,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 
 # Variables de entorno por defecto
 ENV NODE_ENV=production \
-    PORT=3000
+    PORT=${PORT:-3000}
 
 # Usar dumb-init para manejo correcto de señales (graceful shutdown)
 ENTRYPOINT ["dumb-init", "--"]
