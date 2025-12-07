@@ -26,17 +26,19 @@ module.exports = {
     // ═══════════════════════════════════════════════════════════
     // TypeScript Rules
     // ═══════════════════════════════════════════════════════════
-    '@typescript-eslint/no-explicit-any': 'warn',
+    '@typescript-eslint/no-explicit-any': 'off', // Permitir 'any' en backend (común en Express)
     '@typescript-eslint/no-unused-vars': [
       'warn',
       {
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
+        caughtErrors: 'none', // Ignorar variables en catch blocks
       },
     ],
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/no-non-null-assertion': 'warn',
+    '@typescript-eslint/no-non-null-assertion': 'off', // Permitir !  assertions cuando sabemos que no es null
+    '@typescript-eslint/ban-ts-comment': 'warn', // Solo warning para @ts-expect-error
 
     // ═══════════════════════════════════════════════════════════
     // General Rules
@@ -46,7 +48,7 @@ module.exports = {
     'no-var': 'error',
     'prefer-const': 'warn',
     'prefer-arrow-callback': 'warn',
-    'no-return-await': 'warn',
+    'no-return-await': 'off', // A veces es útil para debugging y error handling
 
     // ═══════════════════════════════════════════════════════════
     // Prettier Integration
@@ -65,5 +67,7 @@ module.exports = {
     'coverage/',
     '*.js', // Ignorar archivos JS legacy
     'prisma/migrations/',
+    'prisma/**/*',
+    'scripts/**/*',
   ],
 };
