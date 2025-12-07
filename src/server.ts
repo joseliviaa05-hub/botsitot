@@ -2,12 +2,13 @@
 // SERVER. TS - Express Server Setup
 // ═══════════════════════════════════════════════════════════════
 
-import express, { Application, Request, Response, NextFunction } from 'express';
+import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
-import { logger } from './utils/logger';
+import { initSentry } from './config/sentry.config';
+import { logger, requestLogger } from './utils/logger';
 import { env } from './config/env';
 import { finalCorsOptions } from './config/cors.config';
 import { finalHelmetOptions } from './config/security.config';
@@ -22,6 +23,7 @@ import clientesRoutes from './routes/clientes.routes';
 import statsRoutes from './routes/stats.routes';
 import whatsappRoutes from './routes/whatsapp.routes';
 import authRoutes from './routes/auth.routes';
+import healthRoutes from './routes/health.routes';
 
 // ─────────────────────────────────────────────────────────────
 // Server Class
@@ -34,6 +36,10 @@ class Server {
   constructor() {
     this.app = express();
     this.port = env.PORT;
+
+    // Inicializar Sentry (primero de todo, configura middleware internamente)
+    initSentry(this.app);
+
     this.setupMiddlewares();
     this.setupRoutes();
     this.setupErrorHandling();
@@ -48,7 +54,7 @@ class Server {
     // 🛡️ SECURITY MIDDLEWARES (ORDEN IMPORTANTE)
     // ═══════════════════════════════════════════════════════════
 
-    // 1.  Helmet - Security Headers (con excepción para Swagger)
+    // 1. Helmet - Security Headers (con excepción para Swagger)
     const helmetConfig = {
       ...finalHelmetOptions,
       contentSecurityPolicy: {
@@ -72,7 +78,7 @@ class Server {
     this.app.use(cors(finalCorsOptions));
     logger.info('✅ CORS configurado');
 
-    // 3. Sanitization - NoSQL Injection, XSS, HPP
+    // 3.  Sanitization - NoSQL Injection, XSS, HPP
     this.app.use(securityMiddlewares);
     logger.info('✅ Input sanitization habilitado (NoSQL, XSS, HPP)');
 
@@ -91,22 +97,11 @@ class Server {
     logger.info('✅ Rate limiting habilitado');
 
     // ═══════════════════════════════════════════════════════════
-    // 📝 REQUEST LOGGING
+    // 📝 REQUEST LOGGING (Winston)
     // ═══════════════════════════════════════════════════════════
 
-    this.app.use((req: Request, res: Response, next: NextFunction) => {
-      const start = Date.now();
-
-      // Log cuando termina la respuesta
-      res.on('finish', () => {
-        const duration = Date.now() - start;
-        const statusColor = res.statusCode >= 400 ? 'error' : 'info';
-
-        logger[statusColor](`${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`);
-      });
-
-      next();
-    });
+    this.app.use(requestLogger);
+    logger.info('✅ Request logging habilitado');
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -115,24 +110,17 @@ class Server {
 
   private setupRoutes(): void {
     // ═══════════════════════════════════════════════════════════
-    // 🏥 HEALTH & STATUS ENDPOINTS
+    // 🏥 HEALTH CHECK ROUTES
     // ═══════════════════════════════════════════════════════════
 
-    this.app.get('/health', (_req: Request, res: Response) => {
-      res.json({
-        status: 'ok',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        environment: env.NODE_ENV,
-        version: '2.0.0',
-      });
-    });
+    this.app.use('/', healthRoutes);
 
+    // Legacy health endpoint (mantener para compatibilidad)
     this.app.get('/api/status', (_req: Request, res: Response) => {
       res.json({
         whatsapp: 'connected', // TODO: obtener estado real
         server: 'running',
-        version: '2.0. 0',
+        version: '2.0.0',
         environment: env.NODE_ENV,
         timestamp: new Date().toISOString(),
       });
@@ -147,7 +135,7 @@ class Server {
       swaggerUi.serve,
       swaggerUi.setup(swaggerSpec, {
         customCss: `
-          .swagger-ui .topbar { display: none }
+          . swagger-ui .topbar { display: none }
           .swagger-ui .information-container { margin: 30px 0 }
           .swagger-ui .scheme-container { box-shadow: none; margin: 0 }
         `,
@@ -192,7 +180,7 @@ class Server {
     // 404 - Not Found
     this.app.use(notFoundHandler);
 
-    // Global Error Handler
+    // Global Error Handler (Sentry ya está configurado en initSentry)
     this.app.use(errorHandler);
 
     logger.info('✅ Error handlers configurados');
@@ -212,9 +200,12 @@ class Server {
       logger.info(`🚀 Puerto: ${this.port}`);
       logger.info('');
       logger.info('📍 Endpoints disponibles:');
-      logger.info(`   🏥 Health:    http://localhost:${this.port}/health`);
-      logger.info(`   📊 Status:    http://localhost:${this.port}/api/status`);
-      logger.info(`   📚 API Docs:  http://localhost:${this.port}/api-docs`);
+      logger.info(`   🏥 Health:           http://localhost:${this.port}/health`);
+      logger.info(`   🏥 Health Detailed:  http://localhost:${this.port}/health/detailed`);
+      logger.info(`   🏥 Readiness:        http://localhost:${this.port}/health/ready`);
+      logger.info(`   🏥 Liveness:         http://localhost:${this.port}/health/live`);
+      logger.info(`   📊 Status:           http://localhost:${this.port}/api/status`);
+      logger.info(`   📚 API Docs:         http://localhost:${this.port}/api-docs`);
       logger.info('');
       logger.info('🔐 API Routes:');
       logger.info(`   🔑 Auth:      http://localhost:${this.port}/api/auth`);
