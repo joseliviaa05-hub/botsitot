@@ -5,6 +5,8 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger';
 import { logger } from './utils/logger';
 import { env } from './config/env';
 import { finalCorsOptions } from './config/cors.config';
@@ -46,15 +48,31 @@ class Server {
     // 🛡️ SECURITY MIDDLEWARES (ORDEN IMPORTANTE)
     // ═══════════════════════════════════════════════════════════
 
-    // 1. Helmet - Security Headers
-    this.app.use(helmet(finalHelmetOptions));
+    // 1.  Helmet - Security Headers (con excepción para Swagger)
+    const helmetConfig = {
+      ...finalHelmetOptions,
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", 'data:', 'https://validator.swagger.io'],
+          connectSrc: ["'self'"],
+          fontSrc: ["'self'"],
+          objectSrc: ["'none'"],
+          frameSrc: ["'none'"],
+        },
+      },
+    };
+
+    this.app.use(helmet(helmetConfig));
     logger.info('✅ Helmet security headers habilitados');
 
     // 2.  CORS - Cross-Origin Resource Sharing
     this.app.use(cors(finalCorsOptions));
     logger.info('✅ CORS configurado');
 
-    // 3.  Sanitization - NoSQL Injection, XSS, HPP
+    // 3. Sanitization - NoSQL Injection, XSS, HPP
     this.app.use(securityMiddlewares);
     logger.info('✅ Input sanitization habilitado (NoSQL, XSS, HPP)');
 
@@ -100,7 +118,7 @@ class Server {
     // 🏥 HEALTH & STATUS ENDPOINTS
     // ═══════════════════════════════════════════════════════════
 
-    this.app.get('/health', (req: Request, res: Response) => {
+    this.app.get('/health', (_req: Request, res: Response) => {
       res.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
@@ -110,15 +128,44 @@ class Server {
       });
     });
 
-    this.app.get('/api/status', (req: Request, res: Response) => {
+    this.app.get('/api/status', (_req: Request, res: Response) => {
       res.json({
         whatsapp: 'connected', // TODO: obtener estado real
         server: 'running',
-        version: '2.0.0',
+        version: '2.0. 0',
         environment: env.NODE_ENV,
         timestamp: new Date().toISOString(),
       });
     });
+
+    // ═══════════════════════════════════════════════════════════
+    // 📚 SWAGGER API DOCUMENTATION
+    // ═══════════════════════════════════════════════════════════
+
+    this.app.use(
+      '/api-docs',
+      swaggerUi.serve,
+      swaggerUi.setup(swaggerSpec, {
+        customCss: `
+          .swagger-ui .topbar { display: none }
+          .swagger-ui .information-container { margin: 30px 0 }
+          .swagger-ui .scheme-container { box-shadow: none; margin: 0 }
+        `,
+        customSiteTitle: 'BotSitot API Docs',
+        customfavIcon: '/favicon.ico',
+        swaggerOptions: {
+          persistAuthorization: true,
+          displayRequestDuration: true,
+          filter: true,
+          syntaxHighlight: {
+            activate: true,
+            theme: 'monokai',
+          },
+        },
+      })
+    );
+
+    logger.info('✅ Swagger API Documentation disponible en /api-docs');
 
     // ═══════════════════════════════════════════════════════════
     // 🔐 API ROUTES
@@ -165,8 +212,9 @@ class Server {
       logger.info(`🚀 Puerto: ${this.port}`);
       logger.info('');
       logger.info('📍 Endpoints disponibles:');
-      logger.info(`   🏥 Health: http://localhost:${this.port}/health`);
-      logger.info(`   📊 Status: http://localhost:${this.port}/api/status`);
+      logger.info(`   🏥 Health:    http://localhost:${this.port}/health`);
+      logger.info(`   📊 Status:    http://localhost:${this.port}/api/status`);
+      logger.info(`   📚 API Docs:  http://localhost:${this.port}/api-docs`);
       logger.info('');
       logger.info('🔐 API Routes:');
       logger.info(`   🔑 Auth:      http://localhost:${this.port}/api/auth`);
