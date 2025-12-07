@@ -1,13 +1,11 @@
-﻿// src/routes/productos.routes.ts
-/**
- * ═══════════════════════════════════════════════════════════════
- * PRODUCTOS ROUTES - Con autenticación, autorización y rate limiting
- * ═══════════════════════════════════════════════════════════════
- */
+﻿// ═══════════════════════════════════════════════════════════════
+// PRODUCTOS ROUTES
+// Con autenticación, autorización y rate limiting
+// ═══════════════════════════════════════════════════════════════
 
 import { Router } from 'express';
 import productosController from '../controllers/productos.controller';
-import { generalLimiter, flexibleLimiter } from '../middleware/rateLimiter';
+import { generalLimiter, apiLimiter } from '../middleware/rateLimiter';
 import {
   authenticateToken,
   operatorOrAdmin,
@@ -23,24 +21,19 @@ router.use(generalLimiter);
 
 // ─────────────────────────────────────────────────────────────
 // RUTAS DE LECTURA (VIEWER+)
-// Requieren autenticación, rate limiting más permisivo
 // ─────────────────────────────────────────────────────────────
 
 /**
  * GET /productos
  * Obtener todos los productos (paginado)
  * Auth: VIEWER+
- * Rate limit: 50 requests/minuto
+ * Rate limit: 60 requests/minuto
  */
 router.get(
   '/',
   authenticateToken,
   authenticated,
-  flexibleLimiter({ 
-    windowMs: 60 * 1000, // 1 minuto
-    max: 50, 
-    prefix: 'rl:productos:getAll:' 
-  }),
+  apiLimiter,
   productosController.getAll
 );
 
@@ -54,35 +47,24 @@ router. get(
   '/:id',
   authenticateToken,
   authenticated,
-  flexibleLimiter({ 
-    windowMs: 60 * 1000, 
-    max: 60, 
-    prefix: 'rl:productos:getById:' 
-  }),
+  apiLimiter,
   productosController.getById
 );
 
 // ─────────────────────────────────────────────────────────────
 // RUTAS DE ESCRITURA (OPERATOR+)
-// Requieren autenticación y rol OPERATOR o ADMIN
-// Rate limiting más restrictivo
 // ─────────────────────────────────────────────────────────────
 
 /**
  * POST /productos
  * Crear nuevo producto
  * Auth: OPERATOR+
- * Rate limit: 10 requests/minuto (prevenir spam)
+ * Rate limit: General (dinámico por rol)
  */
-router.post(
+router. post(
   '/',
   authenticateToken,
   operatorOrAdmin,
-  flexibleLimiter({ 
-    windowMs: 60 * 1000, 
-    max: 10, 
-    prefix: 'rl:productos:create:' 
-  }),
   productosController.create
 );
 
@@ -90,17 +72,11 @@ router.post(
  * PUT /productos/:id
  * Actualizar producto existente
  * Auth: OPERATOR+
- * Rate limit: 20 requests/minuto
  */
 router.put(
   '/:id',
   authenticateToken,
   operatorOrAdmin,
-  flexibleLimiter({ 
-    windowMs: 60 * 1000, 
-    max: 20, 
-    prefix: 'rl:productos:update:' 
-  }),
   productosController.update
 );
 
@@ -108,18 +84,12 @@ router.put(
  * DELETE /productos/:id
  * Eliminar producto
  * Auth: OPERATOR+
- * Rate limit: 5 requests/minuto (operación crítica)
  */
-router. delete(
+router.delete(
   '/:id',
   authenticateToken,
   operatorOrAdmin,
-  flexibleLimiter({ 
-    windowMs: 60 * 1000, 
-    max: 5, 
-    prefix: 'rl:productos:delete:' 
-  }),
-  productosController.delete
+  productosController. delete
 );
 
 export default router;

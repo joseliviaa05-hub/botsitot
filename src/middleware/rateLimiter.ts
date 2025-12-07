@@ -1,204 +1,206 @@
-/**
- * ═══════════════════════════════════════════════════════════════
- * RATE LIMITER MIDDLEWARE - Protección contra spam
- * ═══════════════════════════════════════════════════════════════
- */
+// ═══════════════════════════════════════════════════════════════
+// RATE LIMITER MIDDLEWARE
+// Rate limiting avanzado con Redis y límites por rol
+// ═══════════════════════════════════════════════════════════════
 
 import rateLimit from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
-import { redis } from '../config/redis.config';
+import { redisClient } from '../config/redis.config';
+import { Request, Response } from 'express';
+import { AuthRequest } from '../types/auth.types';
 
-/**
- * Crear store de Redis si está disponible
- */
-const createRedisStore = (prefix: string) => {
-  if (!redis) return undefined;
+// ─────────────────────────────────────────────────────────────
+// Helper: Verificar si Redis está disponible
+// ─────────────────────────────────────────────────────────────
 
-  return new RedisStore({
-    // @ts-ignore - rate-limit-redis espera sendCommand
-    sendCommand: (...args: string[]) => redis.call(... args),
-    prefix,
-  });
+const isRedisAvailable = (): boolean => {
+  return redisClient !== null && redisClient. status === 'ready';
 };
 
-/**
- * Rate limiter general (API pública)
- */
+// ─────────────────────────────────────────────────────────────
+// Helper: Determinar límite según rol
+// ─────────────────────────────────────────────────────────────
+
+const getRateLimitByRole = (req: Request): number => {
+  const authReq = req as AuthRequest;
+  
+  // Si está autenticado, verificar rol
+  if (authReq. usuario) {
+    switch (authReq.usuario.rol) {
+      case 'ADMIN':
+        return 1000; // 1000 req/15min
+      case 'OPERATOR':
+        return 500; // 500 req/15min
+      case 'VIEWER':
+        return 200; // 200 req/15min
+      default:
+        return 100;
+    }
+  }
+  
+  // No autenticado: límite estricto
+  return 100; // 100 req/15min
+};
+
+// ─────────────────────────────────────────────────────────────
+// Rate Limiter General (15 min window)
+// ─────────────────────────────────────────────────────────────
+
 export const generalLimiter = rateLimit({
+  store: isRedisAvailable()
+    ?  new RedisStore({
+        // @ts-ignore - RedisStore acepta el cliente v4
+        client: redisClient,
+        prefix: 'rl:general:',
+      })
+    : undefined, // Fallback a memory store si Redis no está disponible
+
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // 100 requests por ventana
+  
+  max: (req) => getRateLimitByRole(req), // Límite dinámico por rol
+  
   message: {
-    error: 'Demasiadas solicitudes, por favor intenta más tarde.',
+    error: 'Too Many Requests',
+    message: 'Demasiadas peticiones desde esta IP, intenta de nuevo más tarde.',
     retryAfter: '15 minutos',
   },
-  standardHeaders: true,
-  legacyHeaders: false,
-  store: createRedisStore('rl:general:'),
-});
 
-/**
- * Rate limiter estricto (operaciones sensibles)
- */
-export const strictLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hora
-  max: 10, // 10 requests por hora
-  message: {
-    error: 'Límite de solicitudes excedido para esta operación.',
-    retryAfter: '1 hora',
+  standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
+  legacyHeaders: false, // Disable `X-RateLimit-*` headers
+
+  // Skip successful requests (solo contar fallos)
+  skipSuccessfulRequests: false,
+  
+  // Skip failed requests
+  skipFailedRequests: false,
+
+  // Key generator (por IP y usuario si está autenticado)
+  keyGenerator: (req: Request) => {
+    const authReq = req as AuthRequest;
+    const ip = req. ip || req. socket.remoteAddress || 'unknown';
+    
+    if (authReq.usuario) {
+      return `user:${authReq.usuario. id}`;
+    }
+    
+    return `ip:${ip}`;
   },
-  standardHeaders: true,
-  legacyHeaders: false,
-  store: createRedisStore('rl:strict:'),
+
+  // Handler cuando se excede el límite
+  handler: (req: Request, res: Response) => {
+    const authReq = req as AuthRequest;
+    const role = authReq.usuario?.rol || 'anonymous';
+    
+    console.warn(`⚠️ Rate limit exceeded: ${role} - ${req.ip} - ${req.method} ${req.path}`);
+    
+    res. status(429).json({
+      error: 'Too Many Requests',
+      message: 'Has excedido el límite de peticiones.  Intenta de nuevo más tarde.',
+      retryAfter: Math.ceil(15 * 60), // segundos
+      role,
+    });
+  },
 });
 
-/**
- * Rate limiter para autenticación
- */
+// ─────────────────────────────────────────────────────────────
+// Auth Rate Limiter (más estricto para login)
+// ─────────────────────────────────────────────────────────────
+
 export const authLimiter = rateLimit({
+  store: isRedisAvailable()
+    ? new RedisStore({
+        // @ts-ignore
+        client: redisClient,
+        prefix: 'rl:auth:',
+      })
+    : undefined,
+
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 5, // 5 intentos
+  max: 10, // 10 intentos de login por 15 min
+  
   message: {
-    error: 'Demasiados intentos de inicio de sesión, intenta más tarde.',
-    retryAfter: '15 minutos',
+    error: 'Too Many Login Attempts',
+    message: 'Demasiados intentos de inicio de sesión.  Intenta de nuevo en 15 minutos.',
   },
-  skipSuccessfulRequests: true, // No contar requests exitosos
+
   standardHeaders: true,
   legacyHeaders: false,
-  store: createRedisStore('rl:auth:'),
+
+  skipSuccessfulRequests: true, // Solo contar intentos fallidos
+
+  handler: (req: Request, res: Response) => {
+    console.warn(`⚠️ Auth rate limit exceeded: ${req. ip} - ${req.body?. email}`);
+    
+    res.status(429).json({
+      error: 'Too Many Login Attempts',
+      message: 'Demasiados intentos de inicio de sesión. Por seguridad, espera 15 minutos.',
+      retryAfter: Math.ceil(15 * 60),
+    });
+  },
 });
 
-/**
- * Rate limiter flexible (por IP y por usuario)
- */
-export const flexibleLimiter = (options: {
-  windowMs?: number;
-  max?: number;
-  prefix?: string;
-}) => {
-  return rateLimit({
-    windowMs: options.windowMs || 60 * 1000, // 1 minuto default
-    max: options.max || 20, // 20 requests default
-    message: {
-      error: 'Límite de solicitudes excedido.',
-      retryAfter: `${(options.windowMs || 60000) / 1000} segundos`,
-    },
-    standardHeaders: true,
-    legacyHeaders: false,
-    store: createRedisStore(options.prefix || 'rl:flex:'),
-  });
-};
+// ─────────────────────────────────────────────────────────────
+// Strict Limiter (para endpoints sensibles)
+// ─────────────────────────────────────────────────────────────
 
-/**
- * Rate limiter para WhatsApp (por número de teléfono)
- */
-export class WhatsAppRateLimiter {
-  private readonly windowMs: number;
-  private readonly max: number;
+export const strictLimiter = rateLimit({
+  store: isRedisAvailable()
+    ?  new RedisStore({
+        // @ts-ignore
+        client: redisClient,
+        prefix: 'rl:strict:',
+      })
+    : undefined,
 
-  constructor(windowMs: number = 60000, max: number = 5) {
-    this.windowMs = windowMs;
-    this. max = max;
-  }
+  windowMs: 60 * 60 * 1000, // 1 hora
+  max: 5, // Solo 5 requests por hora
+  
+  message: {
+    error: 'Too Many Requests',
+    message: 'Has excedido el límite para esta acción sensible.',
+  },
 
-  /**
-   * Verificar si un número puede hacer una solicitud
-   */
-  async canMakeRequest(phoneNumber: string): Promise<{
-    allowed: boolean;
-    remaining: number;
-    resetAt: Date;
-  }> {
-    if (!redis) {
-      // Sin Redis, permitir siempre
-      return {
-        allowed: true,
-        remaining: this.max,
-        resetAt: new Date(Date.now() + this.windowMs),
-      };
-    }
+  standardHeaders: true,
+  legacyHeaders: false,
 
-    const key = `rl:whatsapp:${phoneNumber}`;
-    const now = Date.now();
+  handler: (req: Request, res: Response) => {
+    console.warn(`⚠️ Strict rate limit exceeded: ${req.ip} - ${req.method} ${req.path}`);
+    
+    res.status(429).json({
+      error: 'Too Many Requests',
+      message: 'Esta acción tiene un límite muy estricto.  Intenta de nuevo en 1 hora.',
+      retryAfter: Math.ceil(60 * 60),
+    });
+  },
+});
 
-    try {
-      // Incrementar contador
-      const count = await redis.incr(key);
+// ─────────────────────────────────────────────────────────────
+// API Limiter (más permisivo para APIs públicas)
+// ─────────────────────────────────────────────────────────────
 
-      // Si es la primera vez, setear expiración
-      if (count === 1) {
-        await redis. pexpire(key, this. windowMs);
-      }
+export const apiLimiter = rateLimit({
+  store: isRedisAvailable()
+    ? new RedisStore({
+        // @ts-ignore
+        client: redisClient,
+        prefix: 'rl:api:',
+      })
+    : undefined,
 
-      // Obtener TTL
-      const ttl = await redis.pttl(key);
-      const resetAt = new Date(now + ttl);
+  windowMs: 1 * 60 * 1000, // 1 minuto
+  max: 60, // 60 requests por minuto
+  
+  message: {
+    error: 'Too Many Requests',
+    message: 'Límite de API excedido. Máximo 60 peticiones por minuto.',
+  },
 
-      const allowed = count <= this.max;
-      const remaining = Math.max(0, this.max - count);
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
-      return { allowed, remaining, resetAt };
-    } catch (error) {
-      console.error('Error en WhatsApp rate limiter:', error);
-      // En caso de error, permitir la solicitud
-      return {
-        allowed: true,
-        remaining: this.max,
-        resetAt: new Date(now + this.windowMs),
-      };
-    }
-  }
+// ─────────────────────────────────────────────────────────────
+// Export default (general limiter)
+// ─────────────────────────────────────────────────────────────
 
-  /**
-   * Resetear límite para un número
-   */
-  async reset(phoneNumber: string): Promise<void> {
-    if (!redis) return;
-
-    const key = `rl:whatsapp:${phoneNumber}`;
-    await redis.del(key);
-  }
-
-  /**
-   * Obtener estado actual del límite
-   */
-  async getStatus(phoneNumber: string): Promise<{
-    count: number;
-    limit: number;
-    resetAt: Date | null;
-  }> {
-    if (!redis) {
-      return {
-        count: 0,
-        limit: this.max,
-        resetAt: null,
-      };
-    }
-
-    const key = `rl:whatsapp:${phoneNumber}`;
-
-    try {
-      const count = parseInt((await redis.get(key)) || '0');
-      const ttl = await redis.pttl(key);
-      const resetAt = ttl > 0 ? new Date(Date.now() + ttl) : null;
-
-      return {
-        count,
-        limit: this. max,
-        resetAt,
-      };
-    } catch (error) {
-      console.error('Error obteniendo estado de rate limiter:', error);
-      return {
-        count: 0,
-        limit: this.max,
-        resetAt: null,
-      };
-    }
-  }
-}
-
-// Exportar instancia para WhatsApp
-export const whatsappLimiter = new WhatsAppRateLimiter(
-  60 * 1000, // 1 minuto
-  5 // 5 mensajes por minuto
-);
+export default generalLimiter;

@@ -1,4 +1,8 @@
-// src/routes/auth. routes.ts
+// ═══════════════════════════════════════════════════════════════
+// AUTH ROUTES
+// Rutas de autenticación y gestión de usuarios
+// ═══════════════════════════════════════════════════════════════
+
 import { Router } from 'express';
 import {
   register,
@@ -14,16 +18,21 @@ import {
   adminOnly,
   authenticated,
 } from '../middleware/auth.middleware';
+import { authLimiter, strictLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
 
+// ─────────────────────────────────────────────────────────────
+// 🔓 RUTAS PÚBLICAS (con rate limiting estricto)
+// ─────────────────────────────────────────────────────────────
+
 /**
  * POST /register
- * Puede ser:
- * - Pública: Registra VIEWER sin autenticación
- * - Autenticada (ADMIN): Registra cualquier rol si está autenticado como ADMIN
+ * Registro de usuarios
+ * - Público: Registra VIEWER sin autenticación
+ * - Autenticado (ADMIN): Registra cualquier rol
  */
-router. post('/register', (req, res, next) => {
+router.post('/register', authLimiter, (req, res, next) => {
   // Si tiene Authorization header, validar token
   if (req.headers.authorization) {
     return authenticateToken(req, res, next);
@@ -34,21 +43,68 @@ router. post('/register', (req, res, next) => {
 
 /**
  * POST /login
- * Ruta pública para iniciar sesión
+ * Inicio de sesión
+ * Rate limit: 10 intentos por 15 minutos
  */
-router.post('/login', login);
+router.post('/login', authLimiter, login);
+
+// ─────────────────────────────────────────────────────────────
+// 🔐 RUTAS PROTEGIDAS (requieren autenticación)
+// ─────────────────────────────────────────────────────────────
 
 /**
- * Rutas protegidas (requieren autenticación)
+ * GET /me
+ * Obtener información del usuario actual
  */
 router.get('/me', authenticateToken, authenticated, getMe);
-router.put('/change-password', authenticateToken, authenticated, changePassword);
 
 /**
- * Rutas solo para ADMIN
+ * PUT /change-password
+ * Cambiar contraseña del usuario actual
+ * Rate limit estricto: 5 cambios por hora
+ */
+router.put(
+  '/change-password',
+  strictLimiter,
+  authenticateToken,
+  authenticated,
+  changePassword
+);
+
+// ─────────────────────────────────────────────────────────────
+// 👑 RUTAS ADMIN (solo administradores)
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * GET /users
+ * Listar todos los usuarios (solo ADMIN)
  */
 router.get('/users', authenticateToken, adminOnly, listUsers);
-router.put('/users/:id/role', authenticateToken, adminOnly, updateUserRole);
-router. put('/users/:id/status', authenticateToken, adminOnly, toggleUserStatus);
+
+/**
+ * PUT /users/:id/role
+ * Actualizar rol de usuario (solo ADMIN)
+ * Rate limit estricto: 5 cambios por hora
+ */
+router.put(
+  '/users/:id/role',
+  strictLimiter,
+  authenticateToken,
+  adminOnly,
+  updateUserRole
+);
+
+/**
+ * PUT /users/:id/status
+ * Activar/desactivar usuario (solo ADMIN)
+ * Rate limit estricto: 5 cambios por hora
+ */
+router.put(
+  '/users/:id/status',
+  strictLimiter,
+  authenticateToken,
+  adminOnly,
+  toggleUserStatus
+);
 
 export default router;

@@ -1,68 +1,66 @@
 // ═══════════════════════════════════════════════════════════════
-// AUTH TYPES
-// Tipos para autenticación y autorización
+// VALIDATION MIDDLEWARE
+// Manejo de errores de express-validator
 // ═══════════════════════════════════════════════════════════════
 
-import { Request } from 'express';
-import { Rol } from '@prisma/client';
+import { Request, Response, NextFunction } from 'express';
+import { validationResult, ValidationError } from 'express-validator';
 
 // ─────────────────────────────────────────────────────────────
-// Login & Register
+// Validation Error Handler
 // ─────────────────────────────────────────────────────────────
 
-export interface LoginCredentials {
-  email: string;
-  password: string;
+export const handleValidationErrors = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    const formattedErrors = formatValidationErrors(errors.array());
+
+    res.status(400).json({
+      error: 'Validation Error',
+      message: 'Los datos enviados son inválidos',
+      errors: formattedErrors,
+    });
+    return;
+  }
+
+  next();
+};
+
+// ─────────────────────────────────────────────────────────────
+// Format Validation Errors
+// ─────────────────────────────────────────────────────────────
+
+interface FormattedError {
+  field: string;
+  message: string;
+  value?: any;
 }
 
-export interface RegisterData {
-  email: string;
-  password: string;
-  nombre: string;
-  rol?: Rol;
+function formatValidationErrors(errors: ValidationError[]): FormattedError[] {
+  return errors.map((error) => {
+    if (error.type === 'field') {
+      return {
+        field: error.path,
+        message: error.msg,
+        value: error.value,
+      };
+    }
+    
+    // Para errores que no son de campo
+    return {
+      field: 'unknown',
+      message: typeof error. msg === 'string' ? error.msg : 'Validation error',
+    };
+  });
 }
 
 // ─────────────────────────────────────────────────────────────
-// JWT Token
+// Validate Request (alias más corto)
 // ─────────────────────────────────────────────────────────────
 
-export interface AuthTokenPayload {
-  userId: string;
-  email: string;
-  rol: Rol;
-}
-
-export interface TokenVerifyResult {
-  valid: boolean;
-  payload?: AuthTokenPayload;
-  error?: string;
-}
-
-// ─────────────────────────────────────────────────────────────
-// Auth Response
-// ─────────────────────────────────────────────────────────────
-
-export interface AuthResponse {
-  user: {
-    id: string;
-    email: string;
-    nombre: string;
-    rol: Rol;
-  };
-  token: string;
-  expiresIn: string;
-}
-
-// ─────────────────────────────────────────────────────────────
-// AuthRequest - Request con usuario autenticado
-// ─────────────────────────────────────────────────────────────
-
-export interface AuthRequest extends Request {
-  usuario?: {
-    id: string;
-    email: string;
-    rol: Rol;
-    nombre?: string;
-    activo: boolean;
-  };
-}
+export const validate = handleValidationErrors;
