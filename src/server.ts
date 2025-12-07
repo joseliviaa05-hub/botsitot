@@ -192,7 +192,7 @@ class Server {
 
   start(): void {
     // Bind to 0.0.0.0 to be accessible from outside container (for Render, Railway, etc.)
-    const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
+    const host = '0.0.0.0';
 
     this.app.listen(this.port, host, () => {
       logger.success('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
