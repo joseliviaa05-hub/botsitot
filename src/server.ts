@@ -191,29 +191,33 @@ class Server {
   // ─────────────────────────────────────────────────────────────
 
   start(): void {
-    this.app.listen(this.port, () => {
+    // Bind to 0.0.0.0 to be accessible from outside container (for Render, Railway, etc.)
+    const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
+
+    this.app.listen(this.port, host, () => {
       logger.success('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       logger.success('  BOTSITOT v2.0 - Servidor Express Iniciado');
       logger.success('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       logger.info('');
       logger.info(`🌍 Entorno: ${env.NODE_ENV}`);
       logger.info(`🚀 Puerto: ${this.port}`);
+      logger.info(`🌐 Host: ${host}`);
       logger.info('');
       logger.info('📍 Endpoints disponibles:');
-      logger.info(`   🏥 Health:           http://localhost:${this.port}/health`);
-      logger.info(`   🏥 Health Detailed:  http://localhost:${this.port}/health/detailed`);
-      logger.info(`   🏥 Readiness:        http://localhost:${this.port}/health/ready`);
-      logger.info(`   🏥 Liveness:         http://localhost:${this.port}/health/live`);
-      logger.info(`   📊 Status:           http://localhost:${this.port}/api/status`);
-      logger.info(`   📚 API Docs:         http://localhost:${this.port}/api-docs`);
+      logger.info(`   🏥 Health:           http://${host}:${this.port}/health`);
+      logger.info(`   🏥 Health Detailed:  http://${host}:${this.port}/health/detailed`);
+      logger.info(`   🏥 Readiness:        http://${host}:${this.port}/health/ready`);
+      logger.info(`   🏥 Liveness:         http://${host}:${this.port}/health/live`);
+      logger.info(`   📊 Status:           http://${host}:${this.port}/api/status`);
+      logger.info(`   📚 API Docs:         http://${host}:${this.port}/api-docs`);
       logger.info('');
       logger.info('🔐 API Routes:');
-      logger.info(`   🔑 Auth:      http://localhost:${this.port}/api/auth`);
-      logger.info(`   📦 Productos: http://localhost:${this.port}/api/productos`);
-      logger.info(`   📋 Pedidos:   http://localhost:${this.port}/api/pedidos`);
-      logger.info(`   👥 Clientes:  http://localhost:${this.port}/api/clientes`);
-      logger.info(`   📊 Stats:     http://localhost:${this.port}/api/stats`);
-      logger.info(`   💬 WhatsApp:  http://localhost:${this.port}/api/whatsapp`);
+      logger.info(`   🔑 Auth:      http://${host}:${this.port}/api/auth`);
+      logger.info(`   📦 Productos: http://${host}:${this.port}/api/productos`);
+      logger.info(`   📋 Pedidos:   http://${host}:${this.port}/api/pedidos`);
+      logger.info(`   👥 Clientes:  http://${host}:${this.port}/api/clientes`);
+      logger.info(`   📊 Stats:     http://${host}:${this.port}/api/stats`);
+      logger.info(`   💬 WhatsApp:  http://${host}:${this.port}/api/whatsapp`);
       logger.info('');
       logger.success('✅ Servidor listo para recibir peticiones');
       logger.success('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
