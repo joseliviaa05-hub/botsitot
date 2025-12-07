@@ -30,7 +30,7 @@ function normalizarCategoria(categoria: string): Categoria {
     varios: 'VARIOS',
   };
 
-  return map[categoria. toLowerCase()] || 'VARIOS';
+  return map[categoria.toLowerCase()] || 'VARIOS';
 }
 
 function normalizarTipoEntrega(tipo: string): TipoEntrega {
@@ -64,9 +64,9 @@ async function migrarClientes() {
   let migrados = 0;
   let errores = 0;
 
-  for (const cliente of data. clientes) {
+  for (const cliente of data.clientes) {
     try {
-      if (! cliente.telefono || cliente.telefono === 'status@broadcast') {
+      if (!cliente.telefono || cliente.telefono === 'status@broadcast') {
         console.log(`⚠️  Saltando cliente inválido: ${cliente.telefono}`);
         continue;
       }
@@ -76,7 +76,7 @@ async function migrarClientes() {
           telefono: cliente.telefono,
           nombre: cliente.nombre || 'Sin nombre',
           fechaRegistro: new Date(cliente.fecha_registro || Date.now()),
-          ultimaInteraccion: new Date(cliente. ultima_interaccion || Date. now()),
+          ultimaInteraccion: new Date(cliente.ultima_interaccion || Date.now()),
           totalPedidos: cliente.total_pedidos || 0,
           totalGastado: cliente.total_gastado || 0,
         },
@@ -99,7 +99,7 @@ async function migrarClientes() {
 // ════════════════════════════════════════════════════════════════
 
 async function migrarProductos() {
-  console. log('\n📦 Migrando productos...');
+  console.log('\n📦 Migrando productos...');
 
   const dataPath = path.join(__dirname, '../data/lista-precios.json');
   const raw = await fs.readFile(dataPath, 'utf-8');
@@ -118,11 +118,11 @@ async function migrarProductos() {
 
           const producto = await prisma.producto.create({
             data: {
-              nombre: nombreKey. replace(/_/g, ' '),
+              nombre: nombreKey.replace(/_/g, ' '),
               categoria,
-              subcategoria: subcategoriaKey. replace(/_/g, ' '),
+              subcategoria: subcategoriaKey.replace(/_/g, ' '),
               precio: infoProducto.precio || infoProducto.precio_desde || 0,
-              precioDesde: infoProducto. precio_desde,
+              precioDesde: infoProducto.precio_desde,
               unidad: infoProducto.unidad,
               stock: infoProducto.stock !== false,
               codigoBarras: infoProducto.codigo_barras,
@@ -132,13 +132,13 @@ async function migrarProductos() {
           if (infoProducto.imagenes && Array.isArray(infoProducto.imagenes)) {
             for (let i = 0; i < infoProducto.imagenes.length; i++) {
               const img = infoProducto.imagenes[i];
-              
+
               await prisma.imagenProducto.create({
                 data: {
                   productoId: producto.id,
                   url: img.url,
                   publicId: img.public_id || img.publicId || '',
-                  width: img. width || 0,
+                  width: img.width || 0,
                   height: img.height || 0,
                   format: img.format || 'jpg',
                   size: img.size || 0,
@@ -152,7 +152,7 @@ async function migrarProductos() {
           console.log(`✅ Producto migrado: ${categoria} → ${nombreKey}`);
         } catch (error: any) {
           errores++;
-          console.error(`❌ Error migrando producto ${nombreKey}:`, error. message);
+          console.error(`❌ Error migrando producto ${nombreKey}:`, error.message);
         }
       }
     }
@@ -169,7 +169,7 @@ async function migrarProductos() {
 async function migrarPedidos() {
   console.log('\n📦 Migrando pedidos...');
 
-  const dataPath = path. join(__dirname, '../data/pedidos.json');
+  const dataPath = path.join(__dirname, '../data/pedidos.json');
   const raw = await fs.readFile(dataPath, 'utf-8');
   const data = JSON.parse(raw);
 
@@ -186,7 +186,7 @@ async function migrarPedidos() {
         console.log(`⚠️  Cliente no encontrado, creando: ${pedido.cliente}`);
         cliente = await prisma.cliente.create({
           data: {
-            telefono: pedido. cliente,
+            telefono: pedido.cliente,
             nombre: pedido.nombre || 'Cliente Migrado',
             fechaRegistro: new Date(pedido.fecha),
           },
@@ -206,12 +206,12 @@ async function migrarPedidos() {
           total: pedido.total,
           tipoEntrega: normalizarTipoEntrega(pedido.tipo_entrega),
           estado: normalizarEstadoPedido(pedido.estado),
-          estadoPago: (pedido.estado_pago?. toUpperCase() as EstadoPago) || 'PENDIENTE',
+          estadoPago: (pedido.estado_pago?.toUpperCase() as EstadoPago) || 'PENDIENTE',
         },
       });
 
       for (const item of pedido.productos) {
-        const producto = await prisma.producto. findFirst({
+        const producto = await prisma.producto.findFirst({
           where: {
             nombre: {
               contains: item.nombre,
@@ -222,7 +222,7 @@ async function migrarPedidos() {
 
         await prisma.itemPedido.create({
           data: {
-            pedidoId: pedidoCreado. id,
+            pedidoId: pedidoCreado.id,
             productoId: producto?.id || '',
             nombre: item.nombre,
             cantidad: item.cantidad,
@@ -236,12 +236,12 @@ async function migrarPedidos() {
       console.log(`✅ Pedido migrado: ${pedido.id}`);
     } catch (error: any) {
       errores++;
-      console.error(`❌ Error migrando pedido ${pedido. id}:`, error.message);
+      console.error(`❌ Error migrando pedido ${pedido.id}:`, error.message);
     }
   }
 
   console.log(`\n✅ Pedidos migrados: ${migrados}`);
-  console. log(`❌ Errores: ${errores}`);
+  console.log(`❌ Errores: ${errores}`);
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -252,7 +252,7 @@ async function main() {
   try {
     console.log('═══════════════════════════════════════════════════════════');
     console.log('🚀 INICIANDO MIGRACIÓN DE DATOS JSON → PostgreSQL');
-    console. log('═══════════════════════════════════════════════════════════');
+    console.log('═══════════════════════════════════════════════════════════');
 
     await prisma.$connect();
     console.log('✅ Conectado a la base de datos');
@@ -262,7 +262,7 @@ async function main() {
     await prisma.pedido.deleteMany();
     await prisma.imagenProducto.deleteMany();
     await prisma.producto.deleteMany();
-    await prisma. cliente.deleteMany();
+    await prisma.cliente.deleteMany();
     console.log('✅ Datos limpiados');
 
     await migrarClientes();
@@ -274,7 +274,7 @@ async function main() {
     console.log('═══════════════════════════════════════════════════════════');
 
     const stats = {
-      clientes: await prisma.cliente. count(),
+      clientes: await prisma.cliente.count(),
       productos: await prisma.producto.count(),
       pedidos: await prisma.pedido.count(),
       items: await prisma.itemPedido.count(),
@@ -287,7 +287,6 @@ async function main() {
     console.log(`   Pedidos:   ${stats.pedidos}`);
     console.log(`   Items:     ${stats.items}`);
     console.log(`   Imágenes:  ${stats.imagenes}`);
-
   } catch (error) {
     console.error('\n❌ ERROR CRÍTICO EN MIGRACIÓN:', error);
     throw error;
@@ -296,8 +295,7 @@ async function main() {
   }
 }
 
-main()
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

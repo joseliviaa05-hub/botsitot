@@ -74,18 +74,6 @@ export const generalLimiter = rateLimit({
   // Skip failed requests
   skipFailedRequests: false,
 
-  // Key generator (por IP y usuario si está autenticado)
-  keyGenerator: (req: Request) => {
-    const authReq = req as AuthRequest;
-    const ip = req.ip || req.socket.remoteAddress || 'unknown';
-
-    if (authReq.usuario) {
-      return `user:${authReq.usuario.id}`;
-    }
-
-    return `ip:${ip}`;
-  },
-
   // Handler cuando se excede el límite
   handler: (req: Request, res: Response) => {
     const authReq = req as AuthRequest;
@@ -120,7 +108,7 @@ export const authLimiter = rateLimit({
 
   message: {
     error: 'Too Many Login Attempts',
-    message: 'Demasiados intentos de inicio de sesión.  Intenta de nuevo en 15 minutos.',
+    message: 'Demasiados intentos de inicio de sesión. Intenta de nuevo en 15 minutos.',
   },
 
   standardHeaders: true,

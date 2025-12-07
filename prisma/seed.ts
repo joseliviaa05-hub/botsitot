@@ -12,7 +12,7 @@ async function main() {
     // 1.  Limpiar datos existentes (por si acaso)
     console.log('🧹 Limpiando tablas.. .');
     await prisma.itemPedido.deleteMany();
-    await prisma.pedido. deleteMany();
+    await prisma.pedido.deleteMany();
     await prisma.imagenProducto.deleteMany();
     await prisma.producto.deleteMany();
     await prisma.cliente.deleteMany();
@@ -63,7 +63,7 @@ async function main() {
     console.log('📦 Creando productos...');
 
     const productos = await prisma.$transaction([
-      prisma.producto. create({
+      prisma.producto.create({
         data: {
           nombre: 'Cuaderno Rivadavia 84 hojas',
           categoria: 'LIBRERIA',
@@ -81,7 +81,7 @@ async function main() {
           stock: true,
         },
       }),
-      prisma. producto.create({
+      prisma.producto.create({
         data: {
           nombre: 'Resma A4 Autor 75g x500',
           categoria: 'FOTOCOPIADORA',
@@ -99,7 +99,7 @@ async function main() {
           stock: true,
         },
       }),
-      prisma. producto.create({
+      prisma.producto.create({
         data: {
           nombre: 'Cartas Pokemon Sobre Booster',
           categoria: 'JUGUETERIA',
@@ -179,7 +179,7 @@ async function main() {
           totalGastado: 0,
         },
       }),
-      prisma.cliente. create({
+      prisma.cliente.create({
         data: {
           telefono: '+5491198765432',
           nombre: 'Juan Pérez',
@@ -197,7 +197,7 @@ async function main() {
       }),
     ]);
 
-    console. log(`   ✅ ${clientes.length} clientes creados\n`);
+    console.log(`   ✅ ${clientes.length} clientes creados\n`);
 
     // 5. Crear pedidos de ejemplo
     console.log('📋 Creando pedidos de ejemplo...');
@@ -217,14 +217,14 @@ async function main() {
         items: {
           create: [
             {
-              productoId: productos[0]. id,
+              productoId: productos[0].id,
               nombre: productos[0].nombre,
               cantidad: 1,
               precioUnitario: 2500,
               subtotal: 2500,
             },
             {
-              productoId: productos[1]. id,
+              productoId: productos[1].id,
               nombre: productos[1].nombre,
               cantidad: 1,
               precioUnitario: 1500,
@@ -239,7 +239,7 @@ async function main() {
       data: {
         numero: 'PED-002',
         clienteId: clientes[1].id,
-        nombreCliente: clientes[1]. nombre,
+        nombreCliente: clientes[1].nombre,
         subtotal: 4500,
         descuento: 0,
         delivery: 0,
@@ -261,11 +261,11 @@ async function main() {
       },
     });
 
-    console. log(`   ✅ 2 pedidos creados\n`);
+    console.log(`   ✅ 2 pedidos creados\n`);
 
     // 6.  Actualizar totales de clientes
     console.log('📊 Actualizando totales de clientes...');
-    
+
     await prisma.cliente.update({
       where: { id: clientes[0].id },
       data: { totalPedidos: 1, totalGastado: 4500 },
@@ -280,7 +280,7 @@ async function main() {
 
     console.log('='.repeat(60));
     console.log('\n🎉 SEEDS COMPLETADOS\n');
-    
+
     console.log('📊 Resumen:');
     console.log(`   - ${usuarios.length} usuarios`);
     console.log(`   - ${productos.length} productos`);
@@ -292,16 +292,15 @@ async function main() {
     console.log('   👑 ADMIN:');
     console.log('      Email: admin@botsitot.com');
     console.log(`      Password: ${adminPassword}`);
-    console. log('');
+    console.log('');
     console.log('   👔 OPERATOR:');
     console.log('      Email: operator@botsitot.com');
     console.log(`      Password: ${operatorPassword}`);
     console.log('');
     console.log('   👁️  VIEWER:');
-    console. log('      Email: viewer@botsitot.com');
+    console.log('      Email: viewer@botsitot.com');
     console.log(`      Password: ${viewerPassword}`);
     console.log('');
-
   } catch (error) {
     console.error('\n❌ Error en seeds:', error);
     throw error;
@@ -309,7 +308,7 @@ async function main() {
 }
 
 main()
-  . catch((e) => {
+  .catch((e) => {
     console.error(e);
     process.exit(1);
   })
