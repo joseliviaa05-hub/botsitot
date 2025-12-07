@@ -18,8 +18,8 @@ export class WhatsAppController {
         });
       }
 
-      if (! message) {
-        return res. status(400).json({
+      if (!message) {
+        return res.status(400).json({
           success: false,
           error: 'Campo "message" es requerido',
         });
@@ -27,10 +27,10 @@ export class WhatsAppController {
 
       // TODO: Aquí irá la integración real con WhatsApp API
       // Por ahora, simulamos el envío
-      logger.info(`📤 Mensaje de WhatsApp (MOCK) → ${to}: ${message. substring(0, 50)}`);
+      logger.info(`📤 Mensaje de WhatsApp (MOCK) → ${to}: ${message.substring(0, 50)}`);
 
       // Simular delay de envío
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       res.json({
         success: true,
@@ -43,7 +43,7 @@ export class WhatsAppController {
         message: '✅ Mensaje enviado exitosamente (MOCK)',
       });
     } catch (error: any) {
-      logger. error(`Error enviando mensaje de WhatsApp: ${error.message}`);
+      logger.error(`Error enviando mensaje de WhatsApp: ${error.message}`);
       res.status(500).json({
         success: false,
         error: 'Error al enviar mensaje',
@@ -67,9 +67,9 @@ export class WhatsAppController {
         });
       }
 
-      logger. info(`📤 Imagen de WhatsApp (MOCK) → ${to}: ${imageUrl}`);
+      logger.info(`📤 Imagen de WhatsApp (MOCK) → ${to}: ${imageUrl}`);
 
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 150));
 
       res.json({
         success: true,
@@ -77,7 +77,7 @@ export class WhatsAppController {
           messageId: `mock_img_${Date.now()}`,
           to,
           status: 'sent',
-          timestamp: new Date(). toISOString(),
+          timestamp: new Date().toISOString(),
         },
         message: '✅ Imagen enviada exitosamente (MOCK)',
       });
@@ -98,7 +98,8 @@ export class WhatsAppController {
   async getStatus(req: Request, res: Response) {
     res.json({
       success: true,
-      status: { // ← Cambiado de "data" a "status"
+      status: {
+        // ← Cambiado de "data" a "status"
         status: 'mock',
         connected: false,
         mode: 'development',

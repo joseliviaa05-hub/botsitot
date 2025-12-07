@@ -13,7 +13,7 @@ async function testIndexes() {
     // Test 1: Query por categoria (índice simple)
     console.log('\n1. Query por categoria (con indice)...');
     console.time('  Tiempo');
-    const productos = await prisma.producto. findMany({
+    const productos = await prisma.producto.findMany({
       where: { categoria: 'LIBRERIA' },
       take: 10,
     });
@@ -31,12 +31,12 @@ async function testIndexes() {
       take: 10,
     });
     console.timeEnd('  Tiempo');
-    console.log(`  [OK] Encontrados: ${productosStock. length}`);
+    console.log(`  [OK] Encontrados: ${productosStock.length}`);
 
     // Test 3: Búsqueda por nombre (índice)
     console.log('\n3. Busqueda por nombre (con indice)...');
     console.time('  Tiempo');
-    const busqueda = await prisma. producto.findMany({
+    const busqueda = await prisma.producto.findMany({
       where: {
         nombre: {
           contains: 'a',
@@ -51,7 +51,7 @@ async function testIndexes() {
     // Test 4: Clientes con más pedidos (índice)
     console.log('\n4.  Clientes con mas pedidos (indice en totalPedidos).. .');
     console.time('  Tiempo');
-    const topClientes = await prisma.cliente. findMany({
+    const topClientes = await prisma.cliente.findMany({
       orderBy: { totalPedidos: 'desc' },
       take: 5,
     });
@@ -60,13 +60,13 @@ async function testIndexes() {
 
     // Test 5: Pedidos recientes (índice DESC)
     console.log('\n5.  Pedidos recientes (indice fecha DESC)...');
-    console. time('  Tiempo');
+    console.time('  Tiempo');
     const pedidosRecientes = await prisma.pedido.findMany({
       orderBy: { fecha: 'desc' },
       take: 10,
     });
     console.timeEnd('  Tiempo');
-    console.log(`  [OK] Encontrados: ${pedidosRecientes. length}`);
+    console.log(`  [OK] Encontrados: ${pedidosRecientes.length}`);
 
     // Test 6: Pedidos por cliente y estado (índice compuesto)
     console.log('\n6. Pedidos por cliente y estado (indice compuesto).. .');
@@ -112,7 +112,7 @@ async function testIndexes() {
       },
     });
     console.timeEnd('  Tiempo');
-    console. log(`  [OK] Categorias: ${counts.length}`);
+    console.log(`  [OK] Categorias: ${counts.length}`);
 
     // Test 9: Búsqueda por teléfono (unique index)
     console.log('\n9. Busqueda por telefono (unique index)...');
@@ -121,16 +121,16 @@ async function testIndexes() {
       where: { telefono: '+5491162002289' },
     });
     console.timeEnd('  Tiempo');
-    console.log(`  [OK] Cliente: ${cliente ?  cliente.nombre : 'No encontrado'}`);
+    console.log(`  [OK] Cliente: ${cliente ? cliente.nombre : 'No encontrado'}`);
 
     // Test 10: Productos recién actualizados
     console.log('\n10.  Productos actualizados recientemente...');
-    console. time('  Tiempo');
+    console.time('  Tiempo');
     const actualizados = await prisma.producto.findMany({
       orderBy: { updatedAt: 'desc' },
       take: 5,
     });
-    console. timeEnd('  Tiempo');
+    console.timeEnd('  Tiempo');
     console.log(`  [OK] Encontrados: ${actualizados.length}`);
 
     console.log('\n' + '='.repeat(60));
@@ -151,11 +151,10 @@ async function testIndexes() {
     console.log('  - Busqueda por nombre: ~3-15ms  (30-50x mas rapido)');
     console.log('  - Pedidos recientes: ~1-5ms    (100x mas rapido)');
     console.log('');
-    console. log('='.repeat(60));
+    console.log('='.repeat(60));
     console.log('\n');
-
   } catch (error: any) {
-    console.error('\n[ERROR]', error. message);
+    console.error('\n[ERROR]', error.message);
   } finally {
     await prisma.$disconnect();
     process.exit(0);

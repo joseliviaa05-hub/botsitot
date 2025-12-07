@@ -27,7 +27,7 @@ export const authenticateToken = async (
     // Verificar token
     const result = authService.verifyToken(token);
 
-    if (!result. valid || !result.payload) {
+    if (!result.valid || !result.payload) {
       res.status(401).json({
         success: false,
         error: 'Token inválido o expirado',
@@ -39,7 +39,7 @@ export const authenticateToken = async (
     try {
       const user = await authService.getUserById(result.payload.userId);
 
-      if (!user. activo) {
+      if (!user.activo) {
         res.status(403).json({
           success: false,
           error: 'Usuario inactivo',
@@ -78,7 +78,7 @@ export const authenticateToken = async (
 export const authorize = (...rolesPermitidos: Rol[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) {
-      res. status(401).json({
+      res.status(401).json({
         success: false,
         error: 'No autenticado',
       });
@@ -86,7 +86,7 @@ export const authorize = (...rolesPermitidos: Rol[]) => {
     }
 
     if (!rolesPermitidos.includes(req.user.rol)) {
-      res.status(403). json({
+      res.status(403).json({
         success: false,
         error: 'No autorizado',
         message: `Se requiere uno de estos roles: ${rolesPermitidos.join(', ')}`,
@@ -106,7 +106,7 @@ export const adminOnly = authorize(Rol.ADMIN);
 /**
  * Middleware para permitir ADMIN y OPERATOR
  */
-export const operatorOrAdmin = authorize(Rol. ADMIN, Rol.OPERATOR);
+export const operatorOrAdmin = authorize(Rol.ADMIN, Rol.OPERATOR);
 
 /**
  * Middleware para todos los usuarios autenticados (VIEWER+)

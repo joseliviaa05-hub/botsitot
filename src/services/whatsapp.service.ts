@@ -19,7 +19,7 @@ class WhatsAppService {
   private isReady: boolean = false;
 
   constructor() {
-    this. initializeClient();
+    this.initializeClient();
   }
 
   private initializeClient(): void {
@@ -27,7 +27,7 @@ class WhatsAppService {
 
     this.client = new Client({
       authStrategy: new LocalAuth({
-        dataPath: env.SESSION_PATH
+        dataPath: env.SESSION_PATH,
       }),
       puppeteer: {
         headless: true,
@@ -39,9 +39,9 @@ class WhatsAppService {
           '--disable-accelerated-2d-canvas',
           '--no-first-run',
           '--no-zygote',
-          '--disable-gpu'
-        ]
-      }
+          '--disable-gpu',
+        ],
+      },
     });
 
     this.setupEventHandlers();
@@ -68,8 +68,8 @@ class WhatsAppService {
       logger.success('Cliente de WhatsApp listo! ');
     });
 
-    this. client.on('authenticated', () => {
-      logger. success('WhatsApp autenticado correctamente');
+    this.client.on('authenticated', () => {
+      logger.success('WhatsApp autenticado correctamente');
     });
 
     this.client.on('auth_failure', (msg) => {
@@ -77,7 +77,7 @@ class WhatsAppService {
     });
 
     this.client.on('disconnected', (reason) => {
-      logger. warn('Cliente desconectado: ' + reason);
+      logger.warn('Cliente desconectado: ' + reason);
       this.isReady = false;
     });
 
@@ -89,19 +89,20 @@ class WhatsAppService {
   private async handleMessage(message: Message): Promise<void> {
     try {
       // Ignorar mensajes de grupos y propios
-      if (message.from. includes('@g.us') || message. fromMe) {
+      if (message.from.includes('@g.us') || message.fromMe) {
         return;
       }
 
       const from = message.from;
-      const body = message.body. toLowerCase(). trim();
+      const body = message.body.toLowerCase().trim();
 
       // WHITELIST: Verificar si el número está autorizado
       const numeroLimpio = from.replace(/\D/g, ''); // Quitar todo excepto números
-      const estaAutorizado = env. WHATSAPP_WHITELIST. length === 0 || 
-                            env.WHATSAPP_WHITELIST.some(numero => 
-                              numeroLimpio.includes(numero) || numero. includes(numeroLimpio)
-                            );
+      const estaAutorizado =
+        env.WHATSAPP_WHITELIST.length === 0 ||
+        env.WHATSAPP_WHITELIST.some(
+          (numero) => numeroLimpio.includes(numero) || numero.includes(numeroLimpio)
+        );
 
       if (!estaAutorizado) {
         logger.warn(`Mensaje ignorado de numero NO autorizado: ${from}`);
@@ -118,19 +119,15 @@ class WhatsAppService {
 
       // Enrutar según estado
       if (conversacion.step === 'menu') {
-        await this. handleMenu(message, body);
+        await this.handleMenu(message, body);
       } else if (conversacion.step === 'pedido') {
         await this.handlePedido(message, body, conversacion);
       } else if (conversacion.step === 'consulta') {
-        await this. handleConsulta(message, body);
+        await this.handleConsulta(message, body);
       }
-
     } catch (error) {
       logger.error('Error al manejar mensaje', error as Error);
-      await this.sendMessage(
-        message.from,
-        '❌ Ocurrio un error.  Por favor intenta nuevamente.'
-      );
+      await this.sendMessage(message.from, '❌ Ocurrio un error.  Por favor intenta nuevamente.');
     }
   }
 
@@ -138,8 +135,8 @@ class WhatsAppService {
     const from = message.from;
 
     // Comandos del menú principal
-    if (body. includes('hola') || body.includes('menu') || body.includes('inicio')) {
-      const menuText = 
+    if (body.includes('hola') || body.includes('menu') || body.includes('inicio')) {
+      const menuText =
         '👋 *¡Hola! Bienvenido a BOTSITOT*\n\n' +
         '¿Que necesitas?\n\n' +
         '1️⃣ 🛒 Hacer un pedido\n' +
@@ -148,38 +145,40 @@ class WhatsAppService {
         '4️⃣ 📂 Ver categorias\n' +
         '5️⃣ ℹ️ Informacion del local\n\n' +
         '_Escribi el numero o la palabra clave_';
-      
+
       await this.sendMessage(from, menuText);
       return;
     }
 
     // 1.  Hacer pedido
-    if (body.includes('1') || body.includes('pedido') || body.includes('pedir') || body.includes('comprar')) {
-      conversaciones.set(from, { 
-        step: 'pedido', 
-        data: { substep: 'nombre', carrito: [] } 
+    if (
+      body.includes('1') ||
+      body.includes('pedido') ||
+      body.includes('pedir') ||
+      body.includes('comprar')
+    ) {
+      conversaciones.set(from, {
+        step: 'pedido',
+        data: { substep: 'nombre', carrito: [] },
       });
-      
+
       await this.sendMessage(
         from,
-        '🛒 *NUEVO PEDIDO*\n\n' +
-        'Perfecto!  Vamos a armar tu pedido.\n\n' +
-        '📝 ¿Como te llamas? '
+        '🛒 *NUEVO PEDIDO*\n\n' + 'Perfecto!  Vamos a armar tu pedido.\n\n' + '📝 ¿Como te llamas? '
       );
       return;
     }
 
     // 2.  Consultar precio
     if (body.includes('2') || body.includes('precio') || body.includes('cuanto')) {
-      conversaciones.set(from, { 
-        step: 'consulta', 
-        data: { tipo: 'precio' } 
+      conversaciones.set(from, {
+        step: 'consulta',
+        data: { tipo: 'precio' },
       });
-      
+
       await this.sendMessage(
         from,
-        '💰 *CONSULTA DE PRECIO*\n\n' +
-        'Escribi el nombre del producto que queres consultar:'
+        '💰 *CONSULTA DE PRECIO*\n\n' + 'Escribi el nombre del producto que queres consultar:'
       );
       return;
     }
@@ -197,21 +196,29 @@ class WhatsAppService {
     }
 
     // 5. Información
-    if (body.includes('5') || body.includes('info') || body.includes('horario') || body.includes('ubicacion')) {
-      await this. mostrarInformacion(from);
+    if (
+      body.includes('5') ||
+      body.includes('info') ||
+      body.includes('horario') ||
+      body.includes('ubicacion')
+    ) {
+      await this.mostrarInformacion(from);
       return;
     }
 
     // Si no coincide con nada, mostrar menú
     await this.sendMessage(
       from,
-      '❓ No entendi tu mensaje.\n\n' +
-      'Escribi *menu* para ver las opciones disponibles.'
+      '❓ No entendi tu mensaje.\n\n' + 'Escribi *menu* para ver las opciones disponibles.'
     );
   }
 
-  private async handlePedido(message: Message, body: string, conversacion: ConversacionState): Promise<void> {
-    const from = message. from;
+  private async handlePedido(
+    message: Message,
+    body: string,
+    conversacion: ConversacionState
+  ): Promise<void> {
+    const from = message.from;
     const { substep, carrito, nombre, productos } = conversacion.data;
 
     // Cancelar pedido
@@ -223,7 +230,7 @@ class WhatsAppService {
 
     // 1. Pedir nombre
     if (substep === 'nombre') {
-      conversacion.data.nombre = message.body. trim();
+      conversacion.data.nombre = message.body.trim();
       conversacion.data.substep = 'buscar';
       conversaciones.set(from, conversacion);
 
@@ -232,8 +239,8 @@ class WhatsAppService {
       await this.sendMessage(
         from,
         `Perfecto ${conversacion.data.nombre}!  👍\n\n` +
-        '🔍 *¿Que producto buscas?*\n\n' +
-        'Escribi el nombre o escribi *categorias* para ver todas.'
+          '🔍 *¿Que producto buscas?*\n\n' +
+          'Escribi el nombre o escribi *categorias* para ver todas.'
       );
       return;
     }
@@ -246,14 +253,16 @@ class WhatsAppService {
       }
 
       // Obtener categorías dinámicamente desde la BD
-      const categoriasDisponibles = await productoService. obtenerCategorias();
-      const bodyUpper = body.toUpperCase(). replace(/ /g, '_');
-      
+      const categoriasDisponibles = await productoService.obtenerCategorias();
+      const bodyUpper = body.toUpperCase().replace(/ /g, '_');
+
       const categoriaSeleccionada = categoriasDisponibles.find((cat, index) => {
         const catUpper = cat.toUpperCase();
-        return bodyUpper === catUpper || 
-               bodyUpper === catUpper.replace(/_/g, ' ') ||
-               body === String(index + 1);
+        return (
+          bodyUpper === catUpper ||
+          bodyUpper === catUpper.replace(/_/g, ' ') ||
+          body === String(index + 1)
+        );
       });
 
       let productosEncontrados;
@@ -266,21 +275,20 @@ class WhatsAppService {
         productosEncontrados = await productoService.buscar(body);
       }
 
-      if (productosEncontrados. length === 0) {
+      if (productosEncontrados.length === 0) {
         await this.sendMessage(
           from,
-          '❌ No encontre productos.\n\n' +
-          'Proba con otro termino o escribi *categorias*'
+          '❌ No encontre productos.\n\n' + 'Proba con otro termino o escribi *categorias*'
         );
         return;
       }
 
       conversacion.data.productos = productosEncontrados;
       conversacion.data.substep = 'seleccionar';
-      conversaciones. set(from, conversacion);
+      conversaciones.set(from, conversacion);
 
-      let mensaje = `🎯 *Encontre ${productosEncontrados. length} productos:*\n\n`;
-      
+      let mensaje = `🎯 *Encontre ${productosEncontrados.length} productos:*\n\n`;
+
       productosEncontrados.slice(0, 10).forEach((prod: any, index: number) => {
         mensaje += `${index + 1}.  *${prod.nombre}*\n`;
         mensaje += `   💰 $${Number(prod.precio).toLocaleString('es-AR')}`;
@@ -298,15 +306,15 @@ class WhatsAppService {
 
     // 3. Agregar productos
     if (substep === 'seleccionar') {
-      if (body. startsWith('agregar')) {
+      if (body.startsWith('agregar')) {
         const partes = body.split(' ');
-        
+
         if (partes.length < 3) {
           await this.sendMessage(
             from,
             '❌ Formato incorrecto.\n\n' +
-            'Usa: *agregar [numero] [cantidad]*\n' +
-            'Ejemplo: agregar 1 2'
+              'Usa: *agregar [numero] [cantidad]*\n' +
+              'Ejemplo: agregar 1 2'
           );
           return;
         }
@@ -331,7 +339,7 @@ class WhatsAppService {
           productoId: producto.id,
           nombre: producto.nombre,
           precio: Number(producto.precio),
-          cantidad
+          cantidad,
         });
 
         conversacion.data.carrito = carrito;
@@ -342,12 +350,12 @@ class WhatsAppService {
         await this.sendMessage(
           from,
           `✅ Agregado al carrito:\n\n` +
-          `📦 ${producto.nombre} x${cantidad}\n` +
-          `💰 $${subtotal. toLocaleString('es-AR')}\n\n` +
-          `Podes:\n` +
-          `➕ Seguir buscando productos\n` +
-          `🛒 Escribir *ver carrito*\n` +
-          `✅ Escribir *confirmar* para finalizar`
+            `📦 ${producto.nombre} x${cantidad}\n` +
+            `💰 $${subtotal.toLocaleString('es-AR')}\n\n` +
+            `Podes:\n` +
+            `➕ Seguir buscando productos\n` +
+            `🛒 Escribir *ver carrito*\n` +
+            `✅ Escribir *confirmar* para finalizar`
         );
         return;
       }
@@ -369,9 +377,9 @@ class WhatsAppService {
         await this.sendMessage(
           from,
           '📍 *TIPO DE ENTREGA*\n\n' +
-          '1️⃣ 🚚 Delivery (+$500)\n' +
-          '2️⃣ 🏪 Retiro en local (Gratis)\n\n' +
-          'Escribi 1 o 2:'
+            '1️⃣ 🚚 Delivery (+$500)\n' +
+            '2️⃣ 🏪 Retiro en local (Gratis)\n\n' +
+            'Escribi 1 o 2:'
         );
         return;
       }
@@ -390,16 +398,16 @@ class WhatsAppService {
       try {
         const items = carrito.map((item: any) => ({
           productoId: item.productoId,
-          cantidad: item.cantidad
+          cantidad: item.cantidad,
         }));
 
         const pedido = await pedidoService.crear({
           clienteTelefono: from,
           items,
-          tipoEntrega
+          tipoEntrega,
         });
 
-        const resumen = await pedidoService. obtenerResumen(pedido. id);
+        const resumen = await pedidoService.obtenerResumen(pedido.id);
 
         // Limpiar conversación
         conversaciones.delete(from);
@@ -407,19 +415,16 @@ class WhatsAppService {
         await this.sendMessage(
           from,
           '✅ *PEDIDO CONFIRMADO*\n\n' +
-          resumen +
-          '\n\n' +
-          '📞 Te contactaremos para coordinar la entrega.\n' +
-          '¡Gracias por tu compra!  🎉\n\n' +
-          'Escribi *menu* para volver al inicio.'
+            resumen +
+            '\n\n' +
+            '📞 Te contactaremos para coordinar la entrega.\n' +
+            '¡Gracias por tu compra!  🎉\n\n' +
+            'Escribi *menu* para volver al inicio.'
         );
-
       } catch (error: any) {
-        await this. sendMessage(
+        await this.sendMessage(
           from,
-          '❌ Error al crear el pedido:\n' +
-          error.message +
-          '\n\nIntenta nuevamente.'
+          '❌ Error al crear el pedido:\n' + error.message + '\n\nIntenta nuevamente.'
         );
         conversaciones.delete(from);
       }
@@ -433,8 +438,8 @@ class WhatsAppService {
     // Obtener categorías dinámicamente desde la BD
     const categoriasDisponibles = await productoService.obtenerCategorias();
     const bodyUpper = body.toUpperCase().replace(/ /g, '_');
-    
-    const categoriaSeleccionada = categoriasDisponibles.find(cat => {
+
+    const categoriaSeleccionada = categoriasDisponibles.find((cat) => {
       const catUpper = cat.toUpperCase();
       return bodyUpper === catUpper || bodyUpper === catUpper.replace(/_/g, ' ');
     });
@@ -452,8 +457,7 @@ class WhatsAppService {
     if (productos.length === 0) {
       await this.sendMessage(
         from,
-        '❌ No encontre ese producto.\n\n' +
-        'Proba con otro nombre o escribi *menu*'
+        '❌ No encontre ese producto.\n\n' + 'Proba con otro nombre o escribi *menu*'
       );
       return;
     }
@@ -465,8 +469,8 @@ class WhatsAppService {
       mensaje += `   💰 $${Number(prod.precio).toLocaleString('es-AR')}`;
       if (prod.unidad) mensaje += ` ${prod.unidad}`;
       mensaje += `\n`;
-      mensaje += `   📂 ${prod.categoria. replace(/_/g, ' ')}\n`;
-      mensaje += `   ${prod.stock ?  '✅ En stock' : '❌ Sin stock'}\n\n`;
+      mensaje += `   📂 ${prod.categoria.replace(/_/g, ' ')}\n`;
+      mensaje += `   ${prod.stock ? '✅ En stock' : '❌ Sin stock'}\n\n`;
     });
 
     mensaje += '¿Queres hacer un pedido?  Escribi *pedido*';
@@ -504,7 +508,7 @@ class WhatsAppService {
       await this.sendMessage(
         from,
         '📋 Todavia no tenes pedidos realizados.\n\n' +
-        'Escribi *pedido* para hacer tu primera compra!  🛒'
+          'Escribi *pedido* para hacer tu primera compra!  🛒'
       );
       return;
     }
@@ -537,7 +541,7 @@ class WhatsAppService {
   }
 
   private async mostrarInformacion(from: string): Promise<void> {
-    const mensaje = 
+    const mensaje =
       '🏪 *INFORMACION DEL LOCAL*\n\n' +
       '📍 Direccion: [Tu direccion aqui]\n' +
       '🕐 Horarios:\n' +
@@ -559,11 +563,9 @@ class WhatsAppService {
    */
   isWhitelisted(numero: string): boolean {
     if (env.WHATSAPP_WHITELIST.length === 0) return true;
-    
+
     const numeroLimpio = numero.replace(/\D/g, '');
-    return env.WHATSAPP_WHITELIST.some(n => 
-      numeroLimpio.includes(n) || n. includes(numeroLimpio)
-    );
+    return env.WHATSAPP_WHITELIST.some((n) => numeroLimpio.includes(n) || n.includes(numeroLimpio));
   }
 
   /**
@@ -574,7 +576,7 @@ class WhatsAppService {
   }
 
   async initialize(): Promise<void> {
-    if (! this.client) {
+    if (!this.client) {
       throw new Error('Cliente no inicializado');
     }
 
@@ -588,10 +590,10 @@ class WhatsAppService {
     }
 
     try {
-      await this.client. sendMessage(to, message);
+      await this.client.sendMessage(to, message);
       logger.info('Mensaje enviado a ' + to);
     } catch (error) {
-      logger. error('Error al enviar mensaje', error as Error);
+      logger.error('Error al enviar mensaje', error as Error);
       throw error;
     }
   }
@@ -604,7 +606,7 @@ class WhatsAppService {
     try {
       const { MessageMedia } = await import('whatsapp-web.js');
       const media = MessageMedia.fromFilePath(mediaPath);
-      await this.client. sendMessage(to, media, { caption });
+      await this.client.sendMessage(to, media, { caption });
       logger.info('Mensaje con media enviado a ' + to);
     } catch (error) {
       logger.error('Error al enviar mensaje con media', error as Error);

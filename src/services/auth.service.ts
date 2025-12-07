@@ -17,10 +17,10 @@ class AuthService {
   private readonly SALT_ROUNDS = 10;
 
   constructor() {
-    this. JWT_SECRET = process.env. JWT_SECRET || 'tu-secreto-super-seguro-cambiar-en-produccion';
+    this.JWT_SECRET = process.env.JWT_SECRET || 'tu-secreto-super-seguro-cambiar-en-produccion';
     this.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
-    if (!process. env.JWT_SECRET) {
+    if (!process.env.JWT_SECRET) {
       console.warn('⚠️  JWT_SECRET no configurado, usando valor por defecto (NO SEGURO)');
     }
   }
@@ -54,9 +54,9 @@ class AuthService {
 
     // Generar token
     const token = this.generateToken({
-      userId: user. id,
-      email: user. email,
-      rol: user. rol,
+      userId: user.id,
+      email: user.email,
+      rol: user.rol,
     });
 
     return {
@@ -76,11 +76,11 @@ class AuthService {
    */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     // Buscar usuario
-    const user = await prisma. usuario.findUnique({
+    const user = await prisma.usuario.findUnique({
       where: { email: credentials.email },
     });
 
-    if (! user) {
+    if (!user) {
       throw new Error('Credenciales inválidas');
     }
 
@@ -90,10 +90,7 @@ class AuthService {
     }
 
     // Verificar contraseña
-    const isPasswordValid = await this.comparePassword(
-      credentials.password,
-      user.password
-    );
+    const isPasswordValid = await this.comparePassword(credentials.password, user.password);
 
     if (!isPasswordValid) {
       throw new Error('Credenciales inválidas');
@@ -108,10 +105,10 @@ class AuthService {
 
     return {
       user: {
-        id: user. id,
-        email: user. email,
-        nombre: user. nombre,
-        rol: user. rol,
+        id: user.id,
+        email: user.email,
+        nombre: user.nombre,
+        rol: user.rol,
       },
       token,
       expiresIn: this.JWT_EXPIRES_IN,
@@ -182,7 +179,7 @@ class AuthService {
       },
     });
 
-    if (! user) {
+    if (!user) {
       throw new Error('Usuario no encontrado');
     }
 
@@ -193,7 +190,7 @@ class AuthService {
    * Actualizar contraseña
    */
   async updatePassword(userId: string, oldPassword: string, newPassword: string) {
-    const user = await prisma.usuario. findUnique({
+    const user = await prisma.usuario.findUnique({
       where: { id: userId },
     });
 
@@ -232,7 +229,7 @@ class AuthService {
    * Cambiar rol de usuario
    */
   async updateUserRole(userId: string, rol: Rol) {
-    return prisma. usuario.update({
+    return prisma.usuario.update({
       where: { id: userId },
       data: { rol },
       select: {

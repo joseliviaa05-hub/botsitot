@@ -50,7 +50,7 @@ export const errorHandler = (
 ): void => {
   // Si es un AppError (error controlado)
   if (err instanceof AppError) {
-    res.status(err.statusCode). json({
+    res.status(err.statusCode).json({
       success: false,
       error: err.message,
       ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
@@ -74,11 +74,7 @@ export const errorHandler = (
 /**
  * Middleware para rutas no encontradas
  */
-export const notFoundHandler = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
+export const notFoundHandler = (req: Request, res: Response, next: NextFunction): void => {
   res.status(404).json({
     success: false,
     error: 'Ruta no encontrada',

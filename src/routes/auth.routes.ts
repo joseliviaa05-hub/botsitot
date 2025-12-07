@@ -13,11 +13,7 @@ import {
   updateUserRole,
   toggleUserStatus,
 } from '../controllers/auth.controller';
-import {
-  authenticateToken,
-  adminOnly,
-  authenticated,
-} from '../middleware/auth.middleware';
+import { authenticateToken, adminOnly, authenticated } from '../middleware/auth.middleware';
 import { authLimiter, strictLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
@@ -32,14 +28,19 @@ const router = Router();
  * - Público: Registra VIEWER sin autenticación
  * - Autenticado (ADMIN): Registra cualquier rol
  */
-router.post('/register', authLimiter, (req, res, next) => {
-  // Si tiene Authorization header, validar token
-  if (req.headers.authorization) {
-    return authenticateToken(req, res, next);
-  }
-  // Si no, continuar sin autenticación (registro público como VIEWER)
-  next();
-}, register);
+router.post(
+  '/register',
+  authLimiter,
+  (req, res, next) => {
+    // Si tiene Authorization header, validar token
+    if (req.headers.authorization) {
+      return authenticateToken(req, res, next);
+    }
+    // Si no, continuar sin autenticación (registro público como VIEWER)
+    next();
+  },
+  register
+);
 
 /**
  * POST /login
@@ -63,13 +64,7 @@ router.get('/me', authenticateToken, authenticated, getMe);
  * Cambiar contraseña del usuario actual
  * Rate limit estricto: 5 cambios por hora
  */
-router.put(
-  '/change-password',
-  strictLimiter,
-  authenticateToken,
-  authenticated,
-  changePassword
-);
+router.put('/change-password', strictLimiter, authenticateToken, authenticated, changePassword);
 
 // ─────────────────────────────────────────────────────────────
 // 👑 RUTAS ADMIN (solo administradores)
@@ -86,25 +81,13 @@ router.get('/users', authenticateToken, adminOnly, listUsers);
  * Actualizar rol de usuario (solo ADMIN)
  * Rate limit estricto: 5 cambios por hora
  */
-router.put(
-  '/users/:id/role',
-  strictLimiter,
-  authenticateToken,
-  adminOnly,
-  updateUserRole
-);
+router.put('/users/:id/role', strictLimiter, authenticateToken, adminOnly, updateUserRole);
 
 /**
  * PUT /users/:id/status
  * Activar/desactivar usuario (solo ADMIN)
  * Rate limit estricto: 5 cambios por hora
  */
-router.put(
-  '/users/:id/status',
-  strictLimiter,
-  authenticateToken,
-  adminOnly,
-  toggleUserStatus
-);
+router.put('/users/:id/status', strictLimiter, authenticateToken, adminOnly, toggleUserStatus);
 
 export default router;

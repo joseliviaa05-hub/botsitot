@@ -16,13 +16,13 @@ export class ClienteService {
     const telefonoLimpio = telefono.replace(/[^0-9]/g, '');
 
     // Buscar cliente existente
-    let cliente = await prisma.cliente. findUnique({
+    let cliente = await prisma.cliente.findUnique({
       where: { telefono: telefonoLimpio },
     });
 
     // Si no existe, crear uno nuevo
     if (!cliente) {
-      cliente = await prisma. cliente.create({
+      cliente = await prisma.cliente.create({
         data: {
           telefono: telefonoLimpio,
           nombre: nombre || 'Cliente WhatsApp',
@@ -37,7 +37,7 @@ export class ClienteService {
    * Actualizar nombre del cliente
    */
   async actualizarNombre(telefono: string, nombre: string): Promise<Cliente> {
-    const telefonoLimpio = telefono. replace(/[^0-9]/g, '');
+    const telefonoLimpio = telefono.replace(/[^0-9]/g, '');
 
     return await prisma.cliente.update({
       where: { telefono: telefonoLimpio },
@@ -80,7 +80,7 @@ export class ClienteService {
           fechaRegistro: 'desc', // ✅ CAMBIO AQUÍ
         },
       }),
-      prisma.cliente. count(),
+      prisma.cliente.count(),
     ]);
 
     return {
@@ -101,7 +101,7 @@ export class ClienteService {
   async buscar(query: string) {
     const searchTerm = query.toLowerCase();
 
-    return await prisma.cliente. findMany({
+    return await prisma.cliente.findMany({
       where: {
         OR: [
           {
@@ -140,7 +140,7 @@ export class ClienteService {
 
     if (!cliente) return [];
 
-    return await prisma. pedido.findMany({
+    return await prisma.pedido.findMany({
       where: { clienteId: cliente.id },
       include: {
         items: {
@@ -160,7 +160,7 @@ export class ClienteService {
   async obtenerEstadisticas(telefono: string) {
     const telefonoLimpio = telefono.replace(/[^0-9]/g, '');
 
-    const cliente = await prisma.cliente. findUnique({
+    const cliente = await prisma.cliente.findUnique({
       where: { telefono: telefonoLimpio },
       include: {
         _count: {
@@ -183,9 +183,9 @@ export class ClienteService {
     });
 
     return {
-      totalPedidos: cliente. totalPedidos,
-      totalGastado: Number(cliente. totalGastado),
-      ultimaCompra: ultimoPedido?. fecha || null,
+      totalPedidos: cliente.totalPedidos,
+      totalGastado: Number(cliente.totalGastado),
+      ultimaCompra: ultimoPedido?.fecha || null,
     };
   }
 }

@@ -32,7 +32,7 @@ class Server {
   constructor() {
     this.app = express();
     this.port = env.PORT;
-    this. setupMiddlewares();
+    this.setupMiddlewares();
     this.setupRoutes();
     this.setupErrorHandling();
   }
@@ -52,7 +52,7 @@ class Server {
 
     // 2.  CORS - Cross-Origin Resource Sharing
     this.app.use(cors(finalCorsOptions));
-    logger. info('✅ CORS configurado');
+    logger.info('✅ CORS configurado');
 
     // 3.  Sanitization - NoSQL Injection, XSS, HPP
     this.app.use(securityMiddlewares);
@@ -78,17 +78,15 @@ class Server {
 
     this.app.use((req: Request, res: Response, next: NextFunction) => {
       const start = Date.now();
-      
+
       // Log cuando termina la respuesta
       res.on('finish', () => {
         const duration = Date.now() - start;
-        const statusColor = res.statusCode >= 400 ?  'error' : 'info';
-        
-        logger[statusColor](
-          `${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`
-        );
+        const statusColor = res.statusCode >= 400 ? 'error' : 'info';
+
+        logger[statusColor](`${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`);
       });
-      
+
       next();
     });
   }
@@ -102,10 +100,10 @@ class Server {
     // 🏥 HEALTH & STATUS ENDPOINTS
     // ═══════════════════════════════════════════════════════════
 
-    this. app.get('/health', (req: Request, res: Response) => {
+    this.app.get('/health', (req: Request, res: Response) => {
       res.json({
         status: 'ok',
-        timestamp: new Date(). toISOString(),
+        timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         environment: env.NODE_ENV,
         version: '2.0.0',
@@ -113,7 +111,7 @@ class Server {
     });
 
     this.app.get('/api/status', (req: Request, res: Response) => {
-      res. json({
+      res.json({
         whatsapp: 'connected', // TODO: obtener estado real
         server: 'running',
         version: '2.0.0',
@@ -132,9 +130,9 @@ class Server {
     // Rutas protegidas (requieren autenticación)
     this.app.use('/api/pedidos', pedidosRoutes);
     this.app.use('/api/productos', productosRoutes);
-    this.app. use('/api/clientes', clientesRoutes);
-    this. app.use('/api/stats', statsRoutes);
-    this. app.use('/api/whatsapp', whatsappRoutes);
+    this.app.use('/api/clientes', clientesRoutes);
+    this.app.use('/api/stats', statsRoutes);
+    this.app.use('/api/whatsapp', whatsappRoutes);
 
     logger.info('✅ Rutas API configuradas');
   }
@@ -164,16 +162,16 @@ class Server {
       logger.success('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       logger.info('');
       logger.info(`🌍 Entorno: ${env.NODE_ENV}`);
-      logger.info(`🚀 Puerto: ${this. port}`);
+      logger.info(`🚀 Puerto: ${this.port}`);
       logger.info('');
       logger.info('📍 Endpoints disponibles:');
-      logger. info(`   🏥 Health: http://localhost:${this. port}/health`);
+      logger.info(`   🏥 Health: http://localhost:${this.port}/health`);
       logger.info(`   📊 Status: http://localhost:${this.port}/api/status`);
       logger.info('');
       logger.info('🔐 API Routes:');
       logger.info(`   🔑 Auth:      http://localhost:${this.port}/api/auth`);
       logger.info(`   📦 Productos: http://localhost:${this.port}/api/productos`);
-      logger.info(`   📋 Pedidos:   http://localhost:${this. port}/api/pedidos`);
+      logger.info(`   📋 Pedidos:   http://localhost:${this.port}/api/pedidos`);
       logger.info(`   👥 Clientes:  http://localhost:${this.port}/api/clientes`);
       logger.info(`   📊 Stats:     http://localhost:${this.port}/api/stats`);
       logger.info(`   💬 WhatsApp:  http://localhost:${this.port}/api/whatsapp`);

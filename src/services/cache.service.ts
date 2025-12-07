@@ -23,13 +23,13 @@ export class CacheService {
     }
 
     try {
-      const cached = await redis! .get(key);
-      
-      if (! cached) return null;
-      
+      const cached = await redis!.get(key);
+
+      if (!cached) return null;
+
       return JSON.parse(cached) as T;
     } catch (error: any) {
-      console.error(`Error obteniendo cache ${key}:`, error?. message);
+      console.error(`Error obteniendo cache ${key}:`, error?.message);
       return null;
     }
   }
@@ -45,7 +45,7 @@ export class CacheService {
     try {
       await redis!.setex(key, ttl, JSON.stringify(value));
     } catch (error: any) {
-      console.error(`Error guardando cache ${key}:`, error?. message);
+      console.error(`Error guardando cache ${key}:`, error?.message);
     }
   }
 
@@ -53,14 +53,14 @@ export class CacheService {
    * Eliminar del cache
    */
   async del(key: string): Promise<void> {
-    if (!this. isAvailable()) {
+    if (!this.isAvailable()) {
       return;
     }
 
     try {
       await redis!.del(key);
     } catch (error: any) {
-      console. error(`Error eliminando cache ${key}:`, error?.message);
+      console.error(`Error eliminando cache ${key}:`, error?.message);
     }
   }
 
@@ -74,7 +74,7 @@ export class CacheService {
 
     try {
       const keys = await redis!.keys(pattern);
-      
+
       if (keys.length > 0) {
         await redis!.del(...keys);
       }
@@ -103,11 +103,7 @@ export class CacheService {
   /**
    * Obtener o calcular (cache-aside pattern)
    */
-  async getOrSet<T>(
-    key: string,
-    fetchFn: () => Promise<T>,
-    ttl: number = 3600
-  ): Promise<T> {
+  async getOrSet<T>(key: string, fetchFn: () => Promise<T>, ttl: number = 3600): Promise<T> {
     // Si Redis no está disponible, ejecutar función directamente
     if (!this.isAvailable()) {
       return await fetchFn();
@@ -115,7 +111,7 @@ export class CacheService {
 
     // Intentar obtener del cache
     const cached = await this.get<T>(key);
-    
+
     if (cached !== null) {
       return cached;
     }
@@ -124,7 +120,7 @@ export class CacheService {
     const value = await fetchFn();
 
     // Guardar en cache (fire and forget)
-    this.set(key, value, ttl). catch(() => {
+    this.set(key, value, ttl).catch(() => {
       // Ignorar errores de escritura en cache
     });
 
@@ -141,7 +137,7 @@ export class CacheService {
 
     try {
       const value = await redis!.incr(key);
-      
+
       if (ttl && value === 1) {
         await redis!.expire(key, ttl);
       }
@@ -189,7 +185,7 @@ export class CacheService {
    * Establecer expiración a una key existente
    */
   async expire(key: string, ttl: number): Promise<boolean> {
-    if (!this. isAvailable()) {
+    if (!this.isAvailable()) {
       return false;
     }
 
@@ -206,7 +202,7 @@ export class CacheService {
    * Limpiar todo el cache (usar con cuidado)
    */
   async flush(): Promise<void> {
-    if (!this. isAvailable()) {
+    if (!this.isAvailable()) {
       console.warn('⚠️ Redis no disponible, no se puede limpiar cache');
       return;
     }
@@ -215,7 +211,7 @@ export class CacheService {
       await redis!.flushdb();
       console.log('✅ Cache limpiado completamente');
     } catch (error: any) {
-      console. error('Error limpiando cache:', error?.message);
+      console.error('Error limpiando cache:', error?.message);
     }
   }
 
@@ -223,7 +219,7 @@ export class CacheService {
    * Ping para verificar conexión
    */
   async ping(): Promise<boolean> {
-    if (!this. isAvailable()) {
+    if (!this.isAvailable()) {
       return false;
     }
 
@@ -272,7 +268,7 @@ export class CacheService {
    * Guardar hash
    */
   async hset(key: string, field: string, value: string): Promise<void> {
-    if (!this. isAvailable()) {
+    if (!this.isAvailable()) {
       return;
     }
 
@@ -310,7 +306,7 @@ export class CacheService {
     try {
       return await redis!.hgetall(key);
     } catch (error: any) {
-      console.error(`Error obteniendo hash completo ${key}:`, error?. message);
+      console.error(`Error obteniendo hash completo ${key}:`, error?.message);
       return {};
     }
   }
@@ -318,13 +314,13 @@ export class CacheService {
   /**
    * Agregar a una lista
    */
-  async lpush(key: string, ... values: string[]): Promise<number> {
-    if (!this. isAvailable()) {
+  async lpush(key: string, ...values: string[]): Promise<number> {
+    if (!this.isAvailable()) {
       return 0;
     }
 
     try {
-      return await redis! .lpush(key, ...values);
+      return await redis!.lpush(key, ...values);
     } catch (error: any) {
       console.error(`Error agregando a lista ${key}:`, error?.message);
       return 0;
@@ -342,7 +338,7 @@ export class CacheService {
     try {
       return await redis!.lrange(key, start, stop);
     } catch (error: any) {
-      console.error(`Error obteniendo rango de lista ${key}:`, error?. message);
+      console.error(`Error obteniendo rango de lista ${key}:`, error?.message);
       return [];
     }
   }
@@ -353,7 +349,7 @@ export class CacheService {
   getStats(): { available: boolean; status: string } {
     return {
       available: this.isAvailable(),
-      status: redis?. status || 'disconnected',
+      status: redis?.status || 'disconnected',
     };
   }
 }

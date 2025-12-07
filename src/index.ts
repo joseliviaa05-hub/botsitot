@@ -24,7 +24,7 @@ async function main() {
     logger.success('  SISTEMA COMPLETO INICIADO           ');
     logger.success('  - API REST: http://localhost:' + env.PORT);
     logger.success('  - WhatsApp Bot: CONECTADO           ');
-    logger. success('  - Base de datos: PostgreSQL (Neon)  ');
+    logger.success('  - Base de datos: PostgreSQL (Neon)  ');
     logger.success('========================================');
   } catch (error) {
     logger.error('Error al iniciar BOTSITOT', error as Error);

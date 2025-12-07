@@ -22,15 +22,15 @@ export class ProductosController {
       const skip = (page - 1) * limit;
 
       const where: any = {};
-      
+
       if (categoria) {
         where.categoria = categoria;
       }
-      
+
       if (search) {
         where.OR = [
           { nombre: { contains: search, mode: 'insensitive' } },
-          { subcategoria: { contains: search, mode: 'insensitive' } }
+          { subcategoria: { contains: search, mode: 'insensitive' } },
         ];
       }
 
@@ -40,11 +40,11 @@ export class ProductosController {
           skip,
           take: limit,
           include: {
-            imagenes: true
+            imagenes: true,
           },
-          orderBy: { nombre: 'asc' }
+          orderBy: { nombre: 'asc' },
         }),
-        prisma.producto. count({ where })
+        prisma.producto.count({ where }),
       ]);
 
       res.json({
@@ -55,14 +55,14 @@ export class ProductosController {
           page,
           limit,
           totalPages: Math.ceil(total / limit),
-          hasMore: page < Math.ceil(total / limit)
-        }
+          hasMore: page < Math.ceil(total / limit),
+        },
       });
     } catch (error: any) {
       console.error('Error obteniendo productos:', error);
-      res.status(500). json({
+      res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -74,29 +74,29 @@ export class ProductosController {
     try {
       const { id } = req.params;
 
-      const producto = await prisma. producto.findUnique({
+      const producto = await prisma.producto.findUnique({
         where: { id },
         include: {
-          imagenes: true
-        }
+          imagenes: true,
+        },
       });
 
       if (!producto) {
         return res.status(404).json({
           success: false,
-          error: 'Producto no encontrado'
+          error: 'Producto no encontrado',
         });
       }
 
       res.json({
         success: true,
-        producto // ← Cambiado de "data" a "producto"
+        producto, // ← Cambiado de "data" a "producto"
       });
     } catch (error: any) {
       console.error('Error obteniendo producto:', error);
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -106,12 +106,13 @@ export class ProductosController {
    */
   async create(req: Request, res: Response) {
     try {
-      const { nombre, categoria, subcategoria, precio, precioDesde, unidad, stock, codigoBarras } = req.body;
+      const { nombre, categoria, subcategoria, precio, precioDesde, unidad, stock, codigoBarras } =
+        req.body;
 
-      if (! nombre || !categoria || !subcategoria || !precio) {
+      if (!nombre || !categoria || !subcategoria || !precio) {
         return res.status(400).json({
           success: false,
-          error: 'Nombre, categoría, subcategoría y precio son requeridos'
+          error: 'Nombre, categoría, subcategoría y precio son requeridos',
         });
       }
 
@@ -124,22 +125,22 @@ export class ProductosController {
           precioDesde,
           unidad,
           stock: stock !== undefined ? stock : true,
-          codigoBarras
+          codigoBarras,
         },
         include: {
-          imagenes: true
-        }
+          imagenes: true,
+        },
       });
 
       res.status(201).json({
         success: true,
-        producto // ← Cambiado de "data" a "producto"
+        producto, // ← Cambiado de "data" a "producto"
       });
     } catch (error: any) {
       console.error('Error creando producto:', error);
       res.status(400).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -160,22 +161,22 @@ export class ProductosController {
           ...(precioDesde !== undefined && { precioDesde }),
           ...(unidad && { unidad }),
           ...(stock !== undefined && { stock }),
-          ...(codigoBarras && { codigoBarras })
+          ...(codigoBarras && { codigoBarras }),
         },
         include: {
-          imagenes: true
-        }
+          imagenes: true,
+        },
       });
 
       res.json({
         success: true,
-        producto // ← Cambiado de "data" a "producto"
+        producto, // ← Cambiado de "data" a "producto"
       });
     } catch (error: any) {
-      console. error('Error actualizando producto:', error);
+      console.error('Error actualizando producto:', error);
       res.status(400).json({
         success: false,
-        error: error. message
+        error: error.message,
       });
     }
   }
@@ -188,18 +189,18 @@ export class ProductosController {
       const { id } = req.params;
 
       await prisma.producto.delete({
-        where: { id }
+        where: { id },
       });
 
       res.json({
         success: true,
-        message: 'Producto eliminado'
+        message: 'Producto eliminado',
       });
     } catch (error: any) {
       console.error('Error eliminando producto:', error);
-      res. status(400).json({
+      res.status(400).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -213,23 +214,23 @@ export class ProductosController {
 
       const productos = await prisma.producto.findMany({
         where: {
-          categoria: categoria as Categoria
+          categoria: categoria as Categoria,
         },
         include: {
-          imagenes: true
+          imagenes: true,
         },
-        orderBy: { nombre: 'asc' }
+        orderBy: { nombre: 'asc' },
       });
 
       res.json({
         success: true,
-        productos // ← Cambiado de "data" a "productos"
+        productos, // ← Cambiado de "data" a "productos"
       });
     } catch (error: any) {
       console.error('Error obteniendo productos por categoría:', error);
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   }

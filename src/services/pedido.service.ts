@@ -24,14 +24,14 @@ export class PedidoService {
    * Generar número de pedido
    */
   private async generarNumeroPedido(): Promise<string> {
-    const ultimoPedido = await prisma. pedido.findFirst({
+    const ultimoPedido = await prisma.pedido.findFirst({
       orderBy: { fecha: 'desc' },
       select: { numero: true },
     });
 
     let numeroPedido = 1;
     if (ultimoPedido) {
-      const match = ultimoPedido.numero. match(/PED-(\d+)/);
+      const match = ultimoPedido.numero.match(/PED-(\d+)/);
       if (match) {
         numeroPedido = parseInt(match[1], 10) + 1;
       }
@@ -75,7 +75,7 @@ export class PedidoService {
         throw new Error(`Producto ${item.productoId} no encontrado`);
       }
 
-      if (! producto.stock) {
+      if (!producto.stock) {
         throw new Error(`Producto ${producto.nombre} sin stock`);
       }
 
@@ -102,7 +102,7 @@ export class PedidoService {
       const nuevoPedido = await tx.pedido.create({
         data: {
           numero,
-          clienteId: cliente! .id,
+          clienteId: cliente!.id,
           nombreCliente: cliente!.nombre,
           subtotal,
           descuento,
@@ -126,7 +126,7 @@ export class PedidoService {
       });
 
       // Actualizar estadísticas del cliente
-      await tx.cliente. update({
+      await tx.cliente.update({
         where: { id: cliente!.id },
         data: {
           totalPedidos: { increment: 1 },
@@ -161,7 +161,7 @@ export class PedidoService {
    * Obtener pedido por ID
    */
   async obtenerPorId(id: string) {
-    return await prisma. pedido.findUnique({
+    return await prisma.pedido.findUnique({
       where: { id },
       include: {
         cliente: true,
@@ -213,24 +213,24 @@ export class PedidoService {
 
     let resumen = `📋 *PEDIDO ${pedido.numero}*\n\n`;
     resumen += `👤 Cliente: ${pedido.nombreCliente}\n`;
-    resumen += `📅 Fecha: ${pedido.fecha. toLocaleDateString('es-AR')}\n\n`;
+    resumen += `📅 Fecha: ${pedido.fecha.toLocaleDateString('es-AR')}\n\n`;
     resumen += `🛒 *Productos:*\n`;
 
-    pedido.items. forEach((item: any) => {
+    pedido.items.forEach((item: any) => {
       resumen += `  • ${item.nombre} x${item.cantidad} - $${Number(item.subtotal).toLocaleString('es-AR')}\n`;
     });
 
     resumen += `\n💰 *Totales:*\n`;
     resumen += `  Subtotal: $${Number(pedido.subtotal).toLocaleString('es-AR')}\n`;
-    
+
     if (Number(pedido.descuento) > 0) {
       resumen += `  Descuento: -$${Number(pedido.descuento).toLocaleString('es-AR')}\n`;
     }
-    
+
     if (Number(pedido.delivery) > 0) {
-      resumen += `  Delivery: $${Number(pedido.delivery). toLocaleString('es-AR')}\n`;
+      resumen += `  Delivery: $${Number(pedido.delivery).toLocaleString('es-AR')}\n`;
     }
-    
+
     resumen += `  *TOTAL: $${Number(pedido.total).toLocaleString('es-AR')}*\n\n`;
     resumen += `📍 Entrega: ${pedido.tipoEntrega === 'DELIVERY' ? '🚚 Delivery' : '🏪 Retiro en local'}\n`;
     resumen += `💳 Estado: ${pedido.estadoPago === 'PENDIENTE' ? '⏳ Pendiente' : '✅ Pagado'}`;

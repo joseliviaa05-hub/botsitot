@@ -1,0 +1,46 @@
+# Build outputs
+dist/
+build/
+out/
+
+# Dependencies
+node_modules/
+
+# Testing
+coverage/
+*.test.ts
+*.spec.ts
+__tests__/
+
+# Prisma
+prisma/migrations/
+
+# Config files
+*.config.js
+*.config.ts
+
+# Legacy JS files
+src/**/*.js
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env
+.env.*
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+
+# Git
+.git/
+.github/
+
+# Prisma y Scripts (no lintar)
+prisma/**/*
+scripts/**/*
+
+# Type definition files
+**/*.d.ts

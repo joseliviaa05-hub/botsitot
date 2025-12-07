@@ -9,10 +9,10 @@ import { ValidationError } from '../middleware/errorHandler';
  */
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password, nombre, rol } = req. body;
+    const { email, password, nombre, rol } = req.body;
 
     // Validaciones básicas
-    if (!email || ! password || !nombre) {
+    if (!email || !password || !nombre) {
       res.status(400).json({
         success: false,
         error: 'Email, password y nombre son requeridos',
@@ -21,7 +21,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     }
 
     if (password.length < 6) {
-      res. status(400).json({
+      res.status(400).json({
         success: false,
         error: 'La contraseña debe tener al menos 6 caracteres',
       });
@@ -30,7 +30,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     // Validar formato de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex. test(email)) {
+    if (!emailRegex.test(email)) {
       res.status(400).json({
         success: false,
         error: 'Email inválido',
@@ -59,7 +59,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       }
     }
 
-    const result = await authService. register({
+    const result = await authService.register({
       email,
       password,
       nombre,
@@ -95,14 +95,14 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      res.status(400). json({
+      res.status(400).json({
         success: false,
         error: 'Email y password son requeridos',
       });
       return;
     }
 
-    const result = await authService. login({ email, password });
+    const result = await authService.login({ email, password });
 
     res.status(200).json({
       success: true,
@@ -110,10 +110,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       message: 'Login exitoso',
     });
   } catch (error: any) {
-    if (
-      error.message === 'Credenciales inválidas' ||
-      error.message === 'Usuario inactivo'
-    ) {
+    if (error.message === 'Credenciales inválidas' || error.message === 'Usuario inactivo') {
       res.status(401).json({
         success: false,
         error: error.message,
@@ -134,7 +131,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 export const getMe = async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.user) {
-      res.status(401). json({
+      res.status(401).json({
         success: false,
         error: 'No autenticado',
       });
@@ -168,7 +165,7 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    const { oldPassword, newPassword } = req. body;
+    const { oldPassword, newPassword } = req.body;
 
     if (!oldPassword || !newPassword) {
       res.status(400).json({
@@ -186,7 +183,7 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    await authService.updatePassword(req. user.userId, oldPassword, newPassword);
+    await authService.updatePassword(req.user.userId, oldPassword, newPassword);
 
     res.status(200).json({
       success: true,
@@ -215,7 +212,7 @@ export const listUsers = async (req: Request, res: Response): Promise<void> => {
   try {
     const users = await authService.listUsers();
 
-    res.status(200). json({
+    res.status(200).json({
       success: true,
       data: users,
       count: users.length,
@@ -233,11 +230,11 @@ export const listUsers = async (req: Request, res: Response): Promise<void> => {
  */
 export const updateUserRole = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req. params;
+    const { id } = req.params;
     const { rol } = req.body;
 
     if (!rol || !Object.values(Rol).includes(rol)) {
-      res.status(400). json({
+      res.status(400).json({
         success: false,
         error: 'Rol inválido',
       });
@@ -253,7 +250,7 @@ export const updateUserRole = async (req: Request, res: Response): Promise<void>
     });
   } catch (error: any) {
     if (error.message === 'Usuario no encontrado') {
-      res.status(404). json({
+      res.status(404).json({
         success: false,
         error: error.message,
       });
@@ -276,7 +273,7 @@ export const toggleUserStatus = async (req: Request, res: Response): Promise<voi
     const { activo } = req.body;
 
     if (typeof activo !== 'boolean') {
-      res. status(400). json({
+      res.status(400).json({
         success: false,
         error: 'activo debe ser un booleano',
       });

@@ -15,17 +15,17 @@ export class ClientesController {
    */
   async getAll(req: Request, res: Response) {
     try {
-      const page = parseInt(req.query. page as string) || 1;
-      const limit = parseInt(req. query.limit as string) || 50;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 50;
       const search = req.query.search as string;
       const skip = (page - 1) * limit;
 
       const where: any = {};
-      
+
       if (search) {
-        where. nombre = {
+        where.nombre = {
           contains: search,
-          mode: 'insensitive'
+          mode: 'insensitive',
         };
       }
 
@@ -37,11 +37,11 @@ export class ClientesController {
           orderBy: { ultimaInteraccion: 'desc' },
           include: {
             _count: {
-              select: { pedidos: true }
-            }
-          }
+              select: { pedidos: true },
+            },
+          },
         }),
-        prisma.cliente.count({ where })
+        prisma.cliente.count({ where }),
       ]);
 
       res.json({
@@ -52,14 +52,14 @@ export class ClientesController {
           page,
           limit,
           totalPages: Math.ceil(total / limit),
-          hasMore: page < Math.ceil(total / limit)
-        }
+          hasMore: page < Math.ceil(total / limit),
+        },
       });
     } catch (error: any) {
-      console. error('Error obteniendo clientes:', error);
+      console.error('Error obteniendo clientes:', error);
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -71,35 +71,35 @@ export class ClientesController {
     try {
       const { telefono } = req.params;
 
-      const cliente = await prisma. cliente.findUnique({
+      const cliente = await prisma.cliente.findUnique({
         where: { telefono },
         include: {
           pedidos: {
             orderBy: { fecha: 'desc' },
             take: 10,
             include: {
-              items: true
-            }
-          }
-        }
+              items: true,
+            },
+          },
+        },
       });
 
       if (!cliente) {
         return res.status(404).json({
           success: false,
-          error: 'Cliente no encontrado'
+          error: 'Cliente no encontrado',
         });
       }
 
-      res. json({
+      res.json({
         success: true,
-        cliente // ← Cambiado de "data" a "cliente"
+        cliente, // ← Cambiado de "data" a "cliente"
       });
     } catch (error: any) {
       console.error('Error obteniendo cliente:', error);
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -111,29 +111,29 @@ export class ClientesController {
     try {
       const { telefono, nombre } = req.body;
 
-      if (!telefono || ! nombre) {
-        return res. status(400).json({
+      if (!telefono || !nombre) {
+        return res.status(400).json({
           success: false,
-          error: 'Teléfono y nombre son requeridos'
+          error: 'Teléfono y nombre son requeridos',
         });
       }
 
       const cliente = await prisma.cliente.create({
         data: {
           telefono,
-          nombre
-        }
+          nombre,
+        },
       });
 
-      res. status(201).json({
+      res.status(201).json({
         success: true,
-        cliente // ← Cambiado de "data" a "cliente"
+        cliente, // ← Cambiado de "data" a "cliente"
       });
     } catch (error: any) {
       console.error('Error creando cliente:', error);
-      res.status(400). json({
+      res.status(400).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -143,25 +143,25 @@ export class ClientesController {
    */
   async update(req: Request, res: Response) {
     try {
-      const { telefono } = req. params; // ← Cambiado de "id" a "telefono"
+      const { telefono } = req.params; // ← Cambiado de "id" a "telefono"
       const { nombre } = req.body;
 
       const cliente = await prisma.cliente.update({
         where: { telefono }, // ← Usar telefono como identificador
         data: {
-          ...(nombre && { nombre })
-        }
+          ...(nombre && { nombre }),
+        },
       });
 
       res.json({
         success: true,
-        cliente // ← Cambiado de "data" a "cliente"
+        cliente, // ← Cambiado de "data" a "cliente"
       });
     } catch (error: any) {
       console.error('Error actualizando cliente:', error);
       res.status(400).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -173,19 +173,19 @@ export class ClientesController {
     try {
       const { id } = req.params;
 
-      await prisma.cliente. delete({
-        where: { id }
+      await prisma.cliente.delete({
+        where: { id },
       });
 
-      res. json({
+      res.json({
         success: true,
-        message: 'Cliente eliminado'
+        message: 'Cliente eliminado',
       });
     } catch (error: any) {
       console.error('Error eliminando cliente:', error);
-      res. status(400).json({
+      res.status(400).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   }

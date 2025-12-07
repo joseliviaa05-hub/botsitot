@@ -16,13 +16,13 @@ export class PedidosController {
   async getAll(req: Request, res: Response) {
     try {
       const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req. query.limit as string) || 50;
+      const limit = parseInt(req.query.limit as string) || 50;
       const estado = req.query.estado as EstadoPedido;
       const skip = (page - 1) * limit;
 
       const where: any = {};
       if (estado) {
-        where. estado = estado;
+        where.estado = estado;
       }
 
       const [pedidos, total] = await Promise.all([
@@ -34,13 +34,13 @@ export class PedidosController {
             cliente: true,
             items: {
               include: {
-                producto: true
-              }
-            }
+                producto: true,
+              },
+            },
           },
-          orderBy: { fecha: 'desc' }
+          orderBy: { fecha: 'desc' },
         }),
-        prisma.pedido.count({ where })
+        prisma.pedido.count({ where }),
       ]);
 
       res.json({
@@ -51,14 +51,14 @@ export class PedidosController {
           page,
           limit,
           totalPages: Math.ceil(total / limit),
-          hasMore: page < Math.ceil(total / limit)
-        }
+          hasMore: page < Math.ceil(total / limit),
+        },
       });
     } catch (error: any) {
-      console. error('Error obteniendo pedidos:', error);
-      res.status(500). json({
+      console.error('Error obteniendo pedidos:', error);
+      res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -76,28 +76,28 @@ export class PedidosController {
           cliente: true,
           items: {
             include: {
-              producto: true
-            }
-          }
-        }
+              producto: true,
+            },
+          },
+        },
       });
 
       if (!pedido) {
         return res.status(404).json({
           success: false,
-          error: 'Pedido no encontrado'
+          error: 'Pedido no encontrado',
         });
       }
 
       res.json({
         success: true,
-        pedido // ← Cambiado de "data" a "pedido"
+        pedido, // ← Cambiado de "data" a "pedido"
       });
     } catch (error: any) {
-      console. error('Error obteniendo pedido:', error);
+      console.error('Error obteniendo pedido:', error);
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -112,19 +112,19 @@ export class PedidosController {
       if (!clienteId || !items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({
           success: false,
-          error: 'clienteId e items son requeridos'
+          error: 'clienteId e items son requeridos',
         });
       }
 
       // Generar número de pedido
       const ultimoPedido = await prisma.pedido.findFirst({
         orderBy: { fecha: 'desc' },
-        select: { numero: true }
+        select: { numero: true },
       });
 
       let numeroPedido = 1;
       if (ultimoPedido) {
-        const match = ultimoPedido.numero. match(/PED-(\d+)/);
+        const match = ultimoPedido.numero.match(/PED-(\d+)/);
         if (match) {
           numeroPedido = parseInt(match[1], 10) + 1;
         }
@@ -137,13 +137,13 @@ export class PedidosController {
 
       for (const item of items) {
         const producto = await prisma.producto.findUnique({
-          where: { id: item.productoId }
+          where: { id: item.productoId },
         });
 
         if (!producto) {
           return res.status(400).json({
             success: false,
-            error: `Producto ${item.productoId} no encontrado`
+            error: `Producto ${item.productoId} no encontrado`,
           });
         }
 
@@ -151,33 +151,33 @@ export class PedidosController {
         subtotal += itemSubtotal;
 
         itemsData.push({
-          productoId: producto. id,
-          nombre: producto. nombre,
-          cantidad: item. cantidad,
+          productoId: producto.id,
+          nombre: producto.nombre,
+          cantidad: item.cantidad,
           precioUnitario: producto.precio,
-          subtotal: itemSubtotal
+          subtotal: itemSubtotal,
         });
       }
 
       const descuento = 0;
-      const deliveryCost = delivery !== undefined ? delivery : (tipoEntrega === 'DELIVERY' ? 500 : 0);
+      const deliveryCost = delivery !== undefined ? delivery : tipoEntrega === 'DELIVERY' ? 500 : 0;
       const total = subtotal - descuento + deliveryCost;
 
       // Obtener cliente
       const cliente = await prisma.cliente.findUnique({
-        where: { id: clienteId }
+        where: { id: clienteId },
       });
 
       if (!cliente) {
         return res.status(400).json({
           success: false,
-          error: 'Cliente no encontrado'
+          error: 'Cliente no encontrado',
         });
       }
 
       // Crear pedido con transacción
       const pedido = await prisma.$transaction(async (tx) => {
-        const nuevoPedido = await tx. pedido.create({
+        const nuevoPedido = await tx.pedido.create({
           data: {
             numero,
             clienteId,
@@ -186,20 +186,20 @@ export class PedidosController {
             descuento,
             delivery: deliveryCost,
             total,
-            tipoEntrega: tipoEntrega as TipoEntrega || 'RETIRO',
-            estadoPago: estadoPago as EstadoPago || 'PENDIENTE',
+            tipoEntrega: (tipoEntrega as TipoEntrega) || 'RETIRO',
+            estadoPago: (estadoPago as EstadoPago) || 'PENDIENTE',
             items: {
-              create: itemsData
-            }
+              create: itemsData,
+            },
           },
           include: {
             cliente: true,
             items: {
               include: {
-                producto: true
-              }
-            }
-          }
+                producto: true,
+              },
+            },
+          },
         });
 
         // Actualizar estadísticas del cliente
@@ -207,22 +207,22 @@ export class PedidosController {
           where: { id: clienteId },
           data: {
             totalPedidos: { increment: 1 },
-            totalGastado: { increment: total }
-          }
+            totalGastado: { increment: total },
+          },
         });
 
         return nuevoPedido;
       });
 
-      res.status(201). json({
+      res.status(201).json({
         success: true,
-        pedido // ← Cambiado de "data" a "pedido"
+        pedido, // ← Cambiado de "data" a "pedido"
       });
     } catch (error: any) {
-      console. error('Error creando pedido:', error);
+      console.error('Error creando pedido:', error);
       res.status(400).json({
         success: false,
-        error: error. message
+        error: error.message,
       });
     }
   }
@@ -239,27 +239,27 @@ export class PedidosController {
         where: { id },
         data: {
           ...(estado && { estado: estado as EstadoPedido }),
-          ...(estadoPago && { estadoPago: estadoPago as EstadoPago })
+          ...(estadoPago && { estadoPago: estadoPago as EstadoPago }),
         },
         include: {
           cliente: true,
           items: {
             include: {
-              producto: true
-            }
-          }
-        }
+              producto: true,
+            },
+          },
+        },
       });
 
       res.json({
         success: true,
-        pedido // ← Cambiado de "data" a "pedido"
+        pedido, // ← Cambiado de "data" a "pedido"
       });
     } catch (error: any) {
       console.error('Error actualizando pedido:', error);
       res.status(400).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -272,18 +272,18 @@ export class PedidosController {
       const { id } = req.params;
 
       await prisma.pedido.delete({
-        where: { id }
+        where: { id },
       });
 
       res.json({
         success: true,
-        message: 'Pedido eliminado'
+        message: 'Pedido eliminado',
       });
     } catch (error: any) {
       console.error('Error eliminando pedido:', error);
-      res. status(400).json({
+      res.status(400).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   }

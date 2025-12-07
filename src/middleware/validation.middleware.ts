@@ -10,11 +10,7 @@ import { validationResult, ValidationError } from 'express-validator';
 // Validation Error Handler
 // ─────────────────────────────────────────────────────────────
 
-export const handleValidationErrors = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
+export const handleValidationErrors = (req: Request, res: Response, next: NextFunction): void => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
@@ -50,11 +46,11 @@ function formatValidationErrors(errors: ValidationError[]): FormattedError[] {
         value: error.value,
       };
     }
-    
+
     // Para errores que no son de campo
     return {
       field: 'unknown',
-      message: typeof error. msg === 'string' ? error.msg : 'Validation error',
+      message: typeof error.msg === 'string' ? error.msg : 'Validation error',
     };
   });
 }

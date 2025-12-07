@@ -23,7 +23,7 @@ class PrismaService {
       });
     }
 
-    return PrismaService. instance;
+    return PrismaService.instance;
   }
 
   static async disconnect(): Promise<void> {
@@ -33,5 +33,5 @@ class PrismaService {
   }
 }
 
-export const prisma = PrismaService. getInstance();
+export const prisma = PrismaService.getInstance();
 export default PrismaService;

@@ -5,7 +5,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import mongoSanitize from 'express-mongo-sanitize';
-const xss = require('xss-clean');
+import xss from 'xss-clean';
 import hpp from 'hpp';
 
 // ─────────────────────────────────────────────────────────────
@@ -15,7 +15,7 @@ import hpp from 'hpp';
 export const sanitizeNoSQL = mongoSanitize({
   // Reemplazar caracteres prohibidos
   replaceWith: '_',
-  
+
   // Remover completamente (alternativa)
   // onSanitize: ({ req, key }) => {
   //   console.warn(`⚠️ Sanitized: ${key} in ${req.method} ${req. path}`);
@@ -34,28 +34,16 @@ export const sanitizeXSS = xss();
 
 export const preventHPP = hpp({
   // Parámetros que SÍ pueden estar duplicados
-  whitelist: [
-    'sort',
-    'fields',
-    'page',
-    'limit',
-    'filter',
-    'categoria',
-    'estado',
-  ],
+  whitelist: ['sort', 'fields', 'page', 'limit', 'filter', 'categoria', 'estado'],
 });
 
 // ─────────────────────────────────────────────────────────────
 // Security Headers Middleware
 // ─────────────────────────────────────────────────────────────
 
-export const securityHeaders = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
+export const securityHeaders = (req: Request, res: Response, next: NextFunction): void => {
   // X-Content-Type-Options
-  res. setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
 
   // X-Frame-Options
   res.setHeader('X-Frame-Options', 'DENY');
@@ -64,13 +52,10 @@ export const securityHeaders = (
   res.setHeader('X-XSS-Protection', '1; mode=block');
 
   // Permissions-Policy
-  res.setHeader(
-    'Permissions-Policy',
-    'geolocation=(), microphone=(), camera=()'
-  );
+  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
   // Referrer-Policy
-  res. setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
   next();
 };
@@ -82,20 +67,20 @@ export const securityHeaders = (
 export const limitRequestSize = (maxSize: string = '10mb') => {
   return (req: Request, res: Response, next: NextFunction): void => {
     const contentLength = req.headers['content-length'];
-    
+
     if (contentLength) {
       const sizeInMB = parseInt(contentLength) / (1024 * 1024);
       const maxSizeInMB = parseInt(maxSize);
-      
+
       if (sizeInMB > maxSizeInMB) {
-        res. status(413).json({
+        res.status(413).json({
           error: 'Payload Too Large',
           message: `Request size exceeds ${maxSize}`,
         });
         return;
       }
     }
-    
+
     next();
   };
 };
@@ -104,11 +89,7 @@ export const limitRequestSize = (maxSize: string = '10mb') => {
 // Sanitize User Input (custom)
 // ─────────────────────────────────────────────────────────────
 
-export const sanitizeInput = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
+export const sanitizeInput = (req: Request, res: Response, next: NextFunction): void => {
   // Sanitizar body
   if (req.body) {
     req.body = sanitizeObject(req.body);
@@ -139,7 +120,7 @@ function sanitizeObject(obj: any): any {
   const sanitized: any = Array.isArray(obj) ? [] : {};
 
   for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
       const value = obj[key];
 
       // Recursivo para objetos anidados

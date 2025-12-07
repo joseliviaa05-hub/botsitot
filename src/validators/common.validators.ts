@@ -96,11 +96,7 @@ export const validateString = (
 // Number Validator
 // ─────────────────────────────────────────────────────────────
 
-export const validateNumber = (
-  field: string,
-  min?: number,
-  max?: number
-): ValidationChain => {
+export const validateNumber = (field: string, min?: number, max?: number): ValidationChain => {
   let validator = body(field)
     .notEmpty()
     .withMessage(`${field} es requerido`)
@@ -178,7 +174,8 @@ export const validateArray = (
     .withMessage(`${field} debe ser un array con al menos ${minLength} elementos`);
 
   if (maxLength !== undefined) {
-    validator = validator.isArray({ max: maxLength })
+    validator = validator
+      .isArray({ max: maxLength })
       .withMessage(`${field} debe tener máximo ${maxLength} elementos`);
   }
 
@@ -190,10 +187,7 @@ export const validateArray = (
 // ─────────────────────────────────────────────────────────────
 
 export const validateUrl = (field: string): ValidationChain => {
-  return body(field)
-    .optional()
-    .isURL()
-    .withMessage(`${field} debe ser una URL válida`);
+  return body(field).optional().isURL().withMessage(`${field} debe ser una URL válida`);
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -207,9 +201,9 @@ export const validatePagination = (): ValidationChain[] => {
       .isInt({ min: 1 })
       .withMessage('page debe ser un número entero mayor a 0')
       .toInt(),
-    
+
     query('limit')
-      . optional()
+      .optional()
       .isInt({ min: 1, max: 100 })
       .withMessage('limit debe ser entre 1 y 100')
       .toInt(),
@@ -223,7 +217,7 @@ export const validatePagination = (): ValidationChain[] => {
 export const validateSearchQuery = (): ValidationChain => {
   return query('q')
     .optional()
-    . trim()
+    .trim()
     .isLength({ min: 2, max: 100 })
     .withMessage('La búsqueda debe tener entre 2 y 100 caracteres')
     .escape();
@@ -235,10 +229,10 @@ export const validateSearchQuery = (): ValidationChain => {
 
 export const validateSort = (allowedFields: string[]): ValidationChain => {
   return query('sort')
-    . optional()
+    .optional()
     .custom((value) => {
       const field = value.startsWith('-') ? value.substring(1) : value;
-      if (! allowedFields.includes(field)) {
+      if (!allowedFields.includes(field)) {
         throw new Error(`sort debe ser uno de: ${allowedFields.join(', ')}`);
       }
       return true;
@@ -266,6 +260,6 @@ export const validateStock = (field: string = 'stock'): ValidationChain => {
   return body(field)
     .optional()
     .isInt({ min: 0 })
-    . withMessage('El stock debe ser un número entero positivo')
+    .withMessage('El stock debe ser un número entero positivo')
     .toInt();
 };

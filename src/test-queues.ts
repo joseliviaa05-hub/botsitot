@@ -10,7 +10,7 @@ import { whatsappQueue } from './config/queue.config';
 
 async function testQueues() {
   console.log('\n🧪 PROBANDO BULL QUEUES...\n');
-  console.log('═'. repeat(60));
+  console.log('═'.repeat(60));
 
   if (!whatsappQueue) {
     console.error('❌ Queues no disponibles (Redis requerido)');
@@ -30,7 +30,7 @@ async function testQueues() {
     // 2. Ver estadísticas
     console.log('2️⃣ Estadísticas de WhatsApp Queue.. .');
     const stats = await queueService.getQueueStats('whatsapp');
-    console. log('   📊 Stats:', stats, '\n');
+    console.log('   📊 Stats:', stats, '\n');
 
     // 3. Programar limpieza de cache
     console.log('3️⃣ Programando limpieza de cache...');

@@ -1,10 +1,7 @@
 ﻿// src/routes/stats.routes.ts
 import { Router } from 'express';
 import statsController from '../controllers/statsController';
-import {
-  authenticateToken,
-  operatorOrAdmin,
-} from '../middleware/auth.middleware';
+import { authenticateToken, operatorOrAdmin } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -14,8 +11,8 @@ const router = Router();
  * Auth: OPERATOR+ (solo operadores y admins)
  */
 router.get(
-  '/', 
-  authenticateToken, 
+  '/',
+  authenticateToken,
   operatorOrAdmin, // ← Cambiado de authenticated a operatorOrAdmin
   statsController.getStats.bind(statsController)
 );

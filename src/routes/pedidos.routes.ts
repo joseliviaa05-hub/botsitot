@@ -1,11 +1,7 @@
 ﻿// src/routes/pedidos.routes.ts
 import { Router } from 'express';
 import pedidosController from '../controllers/pedidos.controller';
-import {
-  authenticateToken,
-  operatorOrAdmin,
-  authenticated,
-} from '../middleware/auth.middleware';
+import { authenticateToken, operatorOrAdmin, authenticated } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -20,7 +16,7 @@ router.get('/:id', authenticateToken, authenticated, pedidosController.getById);
  * Rutas de escritura (OPERATOR+)
  * Requieren autenticación y rol OPERATOR o ADMIN
  */
-router. post('/', authenticateToken, operatorOrAdmin, pedidosController.create);
+router.post('/', authenticateToken, operatorOrAdmin, pedidosController.create);
 router.put('/:id', authenticateToken, operatorOrAdmin, pedidosController.update);
 router.delete('/:id', authenticateToken, operatorOrAdmin, pedidosController.delete);
 

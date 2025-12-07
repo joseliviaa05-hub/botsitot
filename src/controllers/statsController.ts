@@ -21,50 +21,51 @@ export class StatsController {
         totalPedidos,
         pedidosHoy,
         totalVendido,
-        productosSinStock
+        productosSinStock,
       ] = await Promise.all([
         prisma.cliente.count(),
-        prisma.producto. count(),
+        prisma.producto.count(),
         prisma.pedido.count(),
         prisma.pedido.count({
           where: {
             fecha: {
-              gte: new Date(new Date().setHours(0, 0, 0, 0))
-            }
-          }
+              gte: new Date(new Date().setHours(0, 0, 0, 0)),
+            },
+          },
         }),
-        prisma. pedido.aggregate({
+        prisma.pedido.aggregate({
           _sum: {
-            total: true
-          }
+            total: true,
+          },
         }),
         prisma.producto.count({
-          where: { stock: false }
-        })
+          where: { stock: false },
+        }),
       ]);
 
       res.json({
         success: true,
-        stats: { // ← Cambiado de "data" a "stats"
+        stats: {
+          // ← Cambiado de "data" a "stats"
           clientes: {
-            total: totalClientes
+            total: totalClientes,
           },
           productos: {
             total: totalProductos,
-            sinStock: productosSinStock
+            sinStock: productosSinStock,
           },
           pedidos: {
             total: totalPedidos,
             hoy: pedidosHoy,
-            totalVendido: Number(totalVendido._sum.total || 0)
-          }
-        }
+            totalVendido: Number(totalVendido._sum.total || 0),
+          },
+        },
       });
     } catch (error: any) {
       console.error('Error obteniendo estadísticas:', error);
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   }

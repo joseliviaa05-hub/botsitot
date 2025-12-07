@@ -6,7 +6,7 @@ class Logger {
   private logsDir: string;
 
   constructor() {
-    this. logsDir = env.LOGS_DIR;
+    this.logsDir = env.LOGS_DIR;
     this.ensureLogDir();
   }
 
@@ -22,9 +22,9 @@ class Logger {
 
   private writeToFile(level: string, message: string): void {
     const timestamp = this.getTimestamp();
-    const logMessage = '[' + timestamp + '] [' + level. toUpperCase() + '] ' + message + '\n';
-    
-    const today = new Date(). toISOString().split('T')[0];
+    const logMessage = '[' + timestamp + '] [' + level.toUpperCase() + '] ' + message + '\n';
+
+    const today = new Date().toISOString().split('T')[0];
     const logFile = path.join(this.logsDir, today + '.log');
 
     fs.appendFileSync(logFile, logMessage, 'utf8');

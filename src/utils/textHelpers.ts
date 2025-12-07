@@ -3,7 +3,7 @@
  */
 export function normalizarTexto(texto: string | null | undefined): string {
   if (!texto) return '';
-  
+
   return texto
     .toLowerCase()
     .normalize('NFD')
@@ -18,10 +18,8 @@ export function normalizarTexto(texto: string | null | undefined): string {
  */
 export function formatearTexto(texto: string | null | undefined): string {
   if (!texto) return '';
-  
-  return texto
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (l) => l.toUpperCase());
+
+  return texto.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 }
 
 /**
@@ -29,7 +27,7 @@ export function formatearTexto(texto: string | null | undefined): string {
  */
 export function limpiarTexto(texto: string): string {
   if (!texto) return '';
-  
+
   return texto
     .toLowerCase()
     .normalize('NFD')
@@ -42,7 +40,7 @@ export function limpiarTexto(texto: string): string {
  */
 export function extraerNumero(texto: string): number | null {
   const match = texto.match(/\d+/);
-  return match ?  parseInt(match[0], 10) : null;
+  return match ? parseInt(match[0], 10) : null;
 }
 
 /**
@@ -72,5 +70,5 @@ export function esTelefono(texto: string): boolean {
  * Limpia número de teléfono
  */
 export function limpiarTelefono(telefono: string): string {
-  return telefono.replace('@c.us', ''). replace(/\D/g, '');
+  return telefono.replace('@c.us', '').replace(/\D/g, '');
 }

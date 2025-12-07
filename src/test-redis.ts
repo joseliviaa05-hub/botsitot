@@ -13,44 +13,43 @@ import redis from './config/redis.config';
 
 async function testRedis() {
   console.log('\n🧪 PROBANDO REDIS/UPSTASH.. .\n');
-  console.log('═'. repeat(60));
+  console.log('═'.repeat(60));
 
   // Verificar que REDIS_URL esté cargado
-  console. log(`\n🔍 REDIS_URL: ${process. env.REDIS_URL ?  '✅ Configurado' : '❌ No encontrado'}`);
-  
-  if (process.env. REDIS_URL) {
+  console.log(`\n🔍 REDIS_URL: ${process.env.REDIS_URL ? '✅ Configurado' : '❌ No encontrado'}`);
+
+  if (process.env.REDIS_URL) {
     const urlMasked = process.env.REDIS_URL.replace(/:([^@]+)@/, ':****@');
-    console. log(`   ${urlMasked}\n`);
+    console.log(`   ${urlMasked}\n`);
   } else {
     console.log('   ❌ Verifica que . env existe y tiene REDIS_URL\n');
     process.exit(1);
   }
 
-  if (! redis) {
+  if (!redis) {
     console.error('❌ Redis no inicializado');
     process.exit(1);
   }
 
   // Conectar explícitamente (lazyConnect está activo)
   console.log('🔌 Conectando a Redis...\n');
-  
+
   try {
     await redis.connect();
-    
+
     // Esperar un poco a que esté ready
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   } catch (error: any) {
     console.error('❌ Error conectando:', error.message);
-    process. exit(1);
+    process.exit(1);
   }
 
   // Estado de conexión
   const stats = cacheService.getStats();
   console.log(`📊 Estado: ${stats.status}`);
-  console.log(`📊 Disponible: ${stats. available ? '✅' : '❌'}\n`);
+  console.log(`📊 Disponible: ${stats.available ? '✅' : '❌'}\n`);
 
-  if (! stats.available) {
+  if (!stats.available) {
     console.log('❌ Redis no disponible. Verifica:');
     console.log('   1. REDIS_URL está en . env');
     console.log('   2. Credenciales de Upstash son correctas');
@@ -61,11 +60,11 @@ async function testRedis() {
 
   try {
     // 1.  Ping
-    console. log('1️⃣ Ping...');
-    const pingOk = await cacheService. ping();
+    console.log('1️⃣ Ping...');
+    const pingOk = await cacheService.ping();
     console.log(`   ${pingOk ? '✅' : '❌'} ${pingOk ? 'PONG' : 'FAIL'}\n`);
 
-    if (! pingOk) {
+    if (!pingOk) {
       throw new Error('Ping falló - conexión no establecida');
     }
 
@@ -77,7 +76,7 @@ async function testRedis() {
     // 3. Get string
     console.log('3️⃣ Get (obtener string)...');
     const value = await cacheService.get<string>('test:string');
-    console.log(`   ${value ?  '✅' : '❌'} Valor: ${value}\n`);
+    console.log(`   ${value ? '✅' : '❌'} Valor: ${value}\n`);
 
     // 4. Set objeto
     console.log('4️⃣ Set (guardar objeto)...');
@@ -97,7 +96,7 @@ async function testRedis() {
     // 7. TTL
     console.log('7️⃣ TTL (tiempo restante)...');
     const ttl = await cacheService.ttl('test:string');
-    console. log(`   ✅ TTL: ${ttl} segundos\n`);
+    console.log(`   ✅ TTL: ${ttl} segundos\n`);
 
     // 8. Incr (contador)
     console.log('8️⃣ Incr (incrementar contador)...');
@@ -111,34 +110,34 @@ async function testRedis() {
     console.log('9️⃣ Keys (buscar patrón test:*)...');
     const keys = await cacheService.keys('test:*');
     console.log(`   ✅ Keys encontradas: ${keys.length}`);
-    keys.forEach(k => console.log(`      - ${k}`));
+    keys.forEach((k) => console.log(`      - ${k}`));
     console.log('');
 
     // 10. Del (eliminar)
-    console. log('🔟 Del (eliminar key)...');
+    console.log('🔟 Del (eliminar key)...');
     await cacheService.del('test:string');
     const afterDel = await cacheService.get('test:string');
-    console.log(`   ${afterDel === null ?  '✅' : '❌'} Eliminado correctamente\n`);
+    console.log(`   ${afterDel === null ? '✅' : '❌'} Eliminado correctamente\n`);
 
     // 11. DelPattern (eliminar patrón)
     console.log('1️⃣1️⃣ DelPattern (limpiar patrón)...');
     await cacheService.delPattern('test:*');
-    const keysAfter = await cacheService. keys('test:*');
-    console.log(`   ✅ Keys restantes: ${keysAfter. length}\n`);
+    const keysAfter = await cacheService.keys('test:*');
+    console.log(`   ✅ Keys restantes: ${keysAfter.length}\n`);
 
     // 12. GetOrSet (cache-aside pattern)
     console.log('1️⃣2️⃣ GetOrSet (patrón cache-aside)...');
     let dbCalls = 0;
-    
+
     const fetchFromDB = async () => {
       dbCalls++;
-      console. log(`      📞 Simulando llamada a BD #${dbCalls}`);
-      await new Promise(resolve => setTimeout(resolve, 100)); // Simular latencia
+      console.log(`      📞 Simulando llamada a BD #${dbCalls}`);
+      await new Promise((resolve) => setTimeout(resolve, 100)); // Simular latencia
       return { productos: 150, precioTotal: 25000 };
     };
 
     console.log('   Primera llamada (no en cache, va a BD):');
-    const data1 = await cacheService. getOrSet('test:productos', fetchFromDB, 60);
+    const data1 = await cacheService.getOrSet('test:productos', fetchFromDB, 60);
     console.log('      ✅ Datos:', data1);
 
     console.log('   Segunda llamada (desde cache, NO va a BD):');
@@ -152,7 +151,6 @@ async function testRedis() {
     console.log('═'.repeat(60));
     console.log('\n✅ TODOS LOS TESTS PASARON\n');
     console.log('🎉 Redis/Upstash funcionando correctamente\n');
-
   } catch (error: any) {
     console.error('\n❌ ERROR EN TESTS:', error.message);
     if (error.stack) {

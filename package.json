@@ -1,7 +1,7 @@
 {
   "name": "bot-whatsapp-gratis",
-  "version": "1.0.0",
-  "description": "Bot gratuito de WhatsApp para negocio multirubro",
+  "version": "2.0.0",
+  "description": "Bot gratuito de WhatsApp para negocio multirubro - Refactor v2 con TypeScript",
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only --ignore-watch node_modules src/index.ts",
@@ -21,7 +21,11 @@
     "check-data": "ts-node src/check-data.ts",
     "test-indexes": "ts-node src/test-indexes.ts",
     "lint": "eslint . --ext .ts",
-    "format": "prettier --write \"src/**/*.ts\" \"prisma/**/*.ts\""
+    "lint:fix": "eslint . --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"prisma/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"prisma/**/*.ts\"",
+    "type-check": "tsc --noEmit",
+    "prepare": "husky"
   },
   "keywords": [
     "whatsapp",
@@ -32,7 +36,9 @@
     "typescript",
     "prisma",
     "redis",
-    "neon"
+    "neon",
+    "express",
+    "docker"
   ],
   "author": "joseliviaa05-hub",
   "license": "MIT",
@@ -81,11 +87,17 @@
     "@types/qrcode-terminal": "^0.12.2",
     "@types/redis": "^4.0.10",
     "@types/supertest": "^6.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.48.1",
+    "@typescript-eslint/parser": "^8.48.1",
     "dotenv-cli": "^11.0.0",
-    "eslint": "^8.57.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "husky": "^9.1.7",
     "jest": "^30.2.0",
+    "lint-staged": "^15.5.2",
     "nodemon": "^3.1.11",
-    "prettier": "^3.3.3",
+    "prettier": "^3.7.4",
     "prisma": "^6.19.0",
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.6",
@@ -100,5 +112,14 @@
   },
   "prisma": {
     "seed": "ts-node -r tsconfig-paths/register prisma/seed.ts"
+  },
+  "lint-staged": {
+    "src/**/*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "prisma/**/*.prisma": [
+      "prettier --write"
+    ]
   }
 }

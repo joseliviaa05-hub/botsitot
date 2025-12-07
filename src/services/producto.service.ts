@@ -10,11 +10,11 @@ import cacheService from './cache.service';
 
 // TTL en segundos
 const CACHE_TTL = {
-  PRODUCTO: 3600,        // 1 hora
-  CATALOGO: 1800,        // 30 minutos
-  CATEGORIA: 3600,       // 1 hora
-  BUSQUEDA: 600,         // 10 minutos
-  DESTACADOS: 7200,      // 2 horas
+  PRODUCTO: 3600, // 1 hora
+  CATALOGO: 1800, // 30 minutos
+  CATEGORIA: 3600, // 1 hora
+  BUSQUEDA: 600, // 10 minutos
+  DESTACADOS: 7200, // 2 horas
 };
 
 export class ProductoService {
@@ -61,7 +61,7 @@ export class ProductoService {
           orderBy: { nombre: 'asc' },
         });
       },
-      CACHE_TTL. CATEGORIA
+      CACHE_TTL.CATEGORIA
     );
   }
 
@@ -74,7 +74,7 @@ export class ProductoService {
     return await cacheService.getOrSet(
       cacheKey,
       async () => {
-        return await prisma. producto.findMany({
+        return await prisma.producto.findMany({
           where: {
             OR: [
               { nombre: { contains: texto, mode: 'insensitive' } },
@@ -91,7 +91,7 @@ export class ProductoService {
           take: 10,
         });
       },
-      CACHE_TTL. BUSQUEDA
+      CACHE_TTL.BUSQUEDA
     );
   }
 
@@ -104,7 +104,7 @@ export class ProductoService {
     return await cacheService.getOrSet(
       cacheKey,
       async () => {
-        return await prisma. producto.findUnique({
+        return await prisma.producto.findUnique({
           where: { id },
           include: {
             imagenes: true,
@@ -119,7 +119,7 @@ export class ProductoService {
    * Obtener producto por nombre (aproximado) - con cache
    */
   async obtenerPorNombre(nombre: string) {
-    const cacheKey = `producto:nombre:${nombre. toLowerCase()}`;
+    const cacheKey = `producto:nombre:${nombre.toLowerCase()}`;
 
     return await cacheService.getOrSet(
       cacheKey,
@@ -155,7 +155,7 @@ export class ProductoService {
         const skip = (page - 1) * limit;
 
         const [productos, total] = await Promise.all([
-          prisma. producto.findMany({
+          prisma.producto.findMany({
             skip,
             take: limit,
             include: {
@@ -199,7 +199,7 @@ export class ProductoService {
     stock?: boolean;
     codigoBarras?: string;
   }) {
-    const producto = await prisma. producto.create({
+    const producto = await prisma.producto.create({
       data: {
         nombre: data.nombre,
         categoria: data.categoria,
@@ -234,7 +234,7 @@ export class ProductoService {
       codigoBarras: string;
     }>
   ) {
-    const producto = await prisma.producto. update({
+    const producto = await prisma.producto.update({
       where: { id },
       data,
     });
@@ -250,7 +250,7 @@ export class ProductoService {
    * Eliminar producto (invalidar cache)
    */
   async eliminar(id: string) {
-    const producto = await prisma.producto. delete({
+    const producto = await prisma.producto.delete({
       where: { id },
     });
 
@@ -287,11 +287,11 @@ export class ProductoService {
   async obtenerDestacados(limit: number = 10) {
     const cacheKey = `productos:destacados:${limit}`;
 
-    return await cacheService. getOrSet(
+    return await cacheService.getOrSet(
       cacheKey,
       async () => {
         // Obtener IDs de productos más vendidos
-        const productosMasVendidos = await prisma.itemPedido. groupBy({
+        const productosMasVendidos = await prisma.itemPedido.groupBy({
           by: ['productoId'],
           _sum: {
             cantidad: true,
@@ -362,14 +362,14 @@ export class ProductoService {
 
         productos.forEach((producto) => {
           if (!catalogo[producto.categoria]) {
-            catalogo[producto. categoria] = [];
+            catalogo[producto.categoria] = [];
           }
-          catalogo[producto.categoria]. push(producto);
+          catalogo[producto.categoria].push(producto);
         });
 
         return catalogo;
       },
-      CACHE_TTL. CATALOGO
+      CACHE_TTL.CATALOGO
     );
   }
 

@@ -1,11 +1,7 @@
 ﻿// src/routes/clientes.routes.ts
 import { Router } from 'express';
 import clientesController from '../controllers/clientes.controller';
-import {
-  authenticateToken,
-  authenticated,
-  operatorOrAdmin,
-} from '../middleware/auth.middleware';
+import { authenticateToken, authenticated, operatorOrAdmin } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -14,10 +10,10 @@ const router = Router();
  * Listar clientes (VIEWER+)
  */
 router.get(
-  '/', 
-  authenticateToken, 
-  authenticated, 
-  clientesController.getAll. bind(clientesController)
+  '/',
+  authenticateToken,
+  authenticated,
+  clientesController.getAll.bind(clientesController)
 );
 
 /**
@@ -25,9 +21,9 @@ router.get(
  * Obtener cliente por teléfono (VIEWER+)
  */
 router.get(
-  '/:telefono', 
-  authenticateToken, 
-  authenticated, 
+  '/:telefono',
+  authenticateToken,
+  authenticated,
   clientesController.getByTelefono.bind(clientesController)
 );
 
@@ -36,19 +32,19 @@ router.get(
  * Crear cliente (OPERATOR+)
  */
 router.post(
-  '/', 
-  authenticateToken, 
+  '/',
+  authenticateToken,
   operatorOrAdmin, // ← Cambiado a operatorOrAdmin
-  clientesController. create.bind(clientesController)
+  clientesController.create.bind(clientesController)
 );
 
 /**
  * PUT /clientes/:telefono
  * Actualizar cliente (OPERATOR+)
  */
-router. put(
+router.put(
   '/:telefono', // ← Cambiado de /:id a /:telefono
-  authenticateToken, 
+  authenticateToken,
   operatorOrAdmin, // ← Cambiado a operatorOrAdmin
   clientesController.update.bind(clientesController)
 );
@@ -57,9 +53,9 @@ router. put(
  * DELETE /clientes/:id
  * Eliminar cliente (OPERATOR+)
  */
-router. delete(
-  '/:id', 
-  authenticateToken, 
+router.delete(
+  '/:id',
+  authenticateToken,
   operatorOrAdmin, // ← Cambiado a operatorOrAdmin
   clientesController.delete.bind(clientesController)
 );

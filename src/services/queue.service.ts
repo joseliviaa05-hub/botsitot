@@ -77,11 +77,8 @@ export class QueueService {
   /**
    * Programar limpieza de cache
    */
-  async scheduleCacheCleanup(
-    data: CacheCleanupJobData,
-    cron?: string
-  ): Promise<Job | null> {
-    if (! cacheCleanupQueue) {
+  async scheduleCacheCleanup(data: CacheCleanupJobData, cron?: string): Promise<Job | null> {
+    if (!cacheCleanupQueue) {
       console.warn('⚠️ Cache Cleanup Queue no disponible');
       return null;
     }
@@ -109,7 +106,7 @@ export class QueueService {
    * Generar reporte
    */
   async generateReport(data: ReportJobData): Promise<Job | null> {
-    if (! reportsQueue) {
+    if (!reportsQueue) {
       console.warn('⚠️ Reports Queue no disponible');
       return null;
     }
@@ -133,7 +130,7 @@ export class QueueService {
    * Enviar notificación
    */
   async sendNotification(data: NotificationJobData): Promise<Job | null> {
-    if (! notificationsQueue) {
+    if (!notificationsQueue) {
       console.warn('⚠️ Notifications Queue no disponible');
       return null;
     }
@@ -187,7 +184,7 @@ export class QueueService {
         queue.getActiveCount(),
         queue.getCompletedCount(),
         queue.getFailedCount(),
-        queue. getDelayedCount(),
+        queue.getDelayedCount(),
       ]);
 
       return {

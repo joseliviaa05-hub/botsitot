@@ -6,11 +6,7 @@
 import { Router } from 'express';
 import productosController from '../controllers/productos.controller';
 import { generalLimiter, apiLimiter } from '../middleware/rateLimiter';
-import {
-  authenticateToken,
-  operatorOrAdmin,
-  authenticated,
-} from '../middleware/auth.middleware';
+import { authenticateToken, operatorOrAdmin, authenticated } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -29,13 +25,7 @@ router.use(generalLimiter);
  * Auth: VIEWER+
  * Rate limit: 60 requests/minuto
  */
-router.get(
-  '/',
-  authenticateToken,
-  authenticated,
-  apiLimiter,
-  productosController.getAll
-);
+router.get('/', authenticateToken, authenticated, apiLimiter, productosController.getAll);
 
 /**
  * GET /productos/:id
@@ -43,13 +33,7 @@ router.get(
  * Auth: VIEWER+
  * Rate limit: 60 requests/minuto
  */
-router. get(
-  '/:id',
-  authenticateToken,
-  authenticated,
-  apiLimiter,
-  productosController.getById
-);
+router.get('/:id', authenticateToken, authenticated, apiLimiter, productosController.getById);
 
 // ─────────────────────────────────────────────────────────────
 // RUTAS DE ESCRITURA (OPERATOR+)
@@ -61,35 +45,20 @@ router. get(
  * Auth: OPERATOR+
  * Rate limit: General (dinámico por rol)
  */
-router. post(
-  '/',
-  authenticateToken,
-  operatorOrAdmin,
-  productosController.create
-);
+router.post('/', authenticateToken, operatorOrAdmin, productosController.create);
 
 /**
  * PUT /productos/:id
  * Actualizar producto existente
  * Auth: OPERATOR+
  */
-router.put(
-  '/:id',
-  authenticateToken,
-  operatorOrAdmin,
-  productosController.update
-);
+router.put('/:id', authenticateToken, operatorOrAdmin, productosController.update);
 
 /**
  * DELETE /productos/:id
  * Eliminar producto
  * Auth: OPERATOR+
  */
-router.delete(
-  '/:id',
-  authenticateToken,
-  operatorOrAdmin,
-  productosController. delete
-);
+router.delete('/:id', authenticateToken, operatorOrAdmin, productosController.delete);
 
 export default router;
