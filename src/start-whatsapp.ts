@@ -18,6 +18,7 @@ async function startWhatsAppBot() {
   logger.info('');
 
   try {
+    // Inicializar servicio de WhatsApp
     await whatsappService.initialize();
 
     logger.info('');
@@ -34,7 +35,7 @@ async function startWhatsAppBot() {
     logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     logger.error('❌ Error al iniciar WhatsApp Bot');
     logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    logger.error(String(error));
+    logger.error(error);
     logger.info('');
     logger.info('💡 Posibles soluciones:');
     logger.info('   1. Verifica tu conexión a internet');
@@ -60,7 +61,7 @@ process.on('SIGINT', async () => {
     logger.info('');
     process.exit(0);
   } catch (error) {
-    logger.error('❌ Error al detener bot');
+    logger.error('❌ Error al detener bot:', error);
     process.exit(1);
   }
 });
@@ -74,7 +75,7 @@ process.on('SIGTERM', async () => {
     logger.success('✅ Bot detenido correctamente');
     process.exit(0);
   } catch (error) {
-    logger.error('❌ Error al detener bot');
+    logger.error('❌ Error al detener bot:', error);
     process.exit(1);
   }
 });
@@ -83,21 +84,22 @@ process.on('SIGTERM', async () => {
 // ERROR HANDLERS
 // ═══════════════════════════════════════════════════════════════
 
-process.on('unhandledRejection', (reason) => {
+process.on('unhandledRejection', (reason, promise) => {
   logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   logger.error('❌ Unhandled Rejection en WhatsApp Bot');
   logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  logger.error(String(reason));
+  logger.error('Promise:', promise);
+  logger.error('Reason:', reason);
   logger.info('');
   logger.info('⚠️  El bot continuará ejecutándose...');
   logger.info('');
 });
 
-process.on('uncaughtException', (error: Error) => {
+process.on('uncaughtException', (error) => {
   logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   logger.error('❌ Uncaught Exception en WhatsApp Bot');
   logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  logger.error(error.message);
+  logger.error(error);
   logger.info('');
   logger.info('🛑 Deteniendo bot por error crítico...');
   process.exit(1);

@@ -19,7 +19,7 @@ async function bootstrap() {
     logger.info('');
 
     // ═══════════════════════════════════════════════════════════
-    // 1.  DATABASE CONNECTION
+    // 1. DATABASE CONNECTION
     // ═══════════════════════════════════════════════════════════
     logger.info('[1/3] Conectando a la base de datos...');
 
@@ -27,7 +27,7 @@ async function bootstrap() {
       await prisma.$connect();
       logger.success('✅ Base de datos conectada (PostgreSQL)');
     } catch (error) {
-      logger.error('❌ Error conectando a la base de datos');
+      logger.error('❌ Error conectando a la base de datos:', error);
       throw error;
     }
 
@@ -36,17 +36,13 @@ async function bootstrap() {
     // ═══════════════════════════════════════════════════════════
     // 2. REDIS CONNECTION
     // ═══════════════════════════════════════════════════════════
-    logger.info('[2/3] Conectando a Redis.. .');
+    logger.info('[2/3] Conectando a Redis...');
 
     try {
-      if (redis) {
-        await redis.ping();
-        logger.success('✅ Redis conectado (Upstash)');
-      } else {
-        logger.warn('⚠️  Redis no configurado');
-      }
+      await redis.ping();
+      logger.success('✅ Redis conectado (Upstash)');
     } catch (error) {
-      logger.error('❌ Error conectando a Redis');
+      logger.error('❌ Error conectando a Redis:', error);
       throw error;
     }
 
@@ -97,7 +93,7 @@ async function bootstrap() {
     logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     logger.error('❌ Error fatal al iniciar la aplicación');
     logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    logger.error(String(error));
+    logger.error(error);
     process.exit(1);
   }
 }
@@ -108,42 +104,38 @@ async function bootstrap() {
 
 process.on('SIGTERM', async () => {
   logger.info('');
-  logger.info('🛑 SIGTERM recibido.   Cerrando aplicación...');
+  logger.info('🛑 SIGTERM recibido.  Cerrando aplicación...');
 
   try {
     await prisma.$disconnect();
     logger.info('✅ PostgreSQL desconectado');
 
-    if (redis) {
-      await redis.disconnect();
-      logger.info('✅ Redis desconectado');
-    }
+    await redis.disconnect();
+    logger.info('✅ Redis desconectado');
 
     logger.success('✅ Aplicación cerrada correctamente');
     process.exit(0);
   } catch (error) {
-    logger.error('❌ Error durante el cierre');
+    logger.error('❌ Error durante el cierre:', error);
     process.exit(1);
   }
 });
 
 process.on('SIGINT', async () => {
   logger.info('');
-  logger.info('🛑 SIGINT recibido.  Cerrando aplicación...');
+  logger.info('🛑 SIGINT recibido. Cerrando aplicación...');
 
   try {
     await prisma.$disconnect();
     logger.info('✅ PostgreSQL desconectado');
 
-    if (redis) {
-      await redis.disconnect();
-      logger.info('✅ Redis desconectado');
-    }
+    await redis.disconnect();
+    logger.info('✅ Redis desconectado');
 
     logger.success('✅ Aplicación cerrada correctamente');
     process.exit(0);
   } catch (error) {
-    logger.error('❌ Error durante el cierre');
+    logger.error('❌ Error durante el cierre:', error);
     process.exit(1);
   }
 });
@@ -152,18 +144,19 @@ process.on('SIGINT', async () => {
 // PROCESS ERROR HANDLERS
 // ═══════════════════════════════════════════════════════════════
 
-process.on('unhandledRejection', (reason) => {
+process.on('unhandledRejection', (reason, promise) => {
   logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   logger.error('❌ Unhandled Rejection');
   logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  logger.error(String(reason));
+  logger.error('Promise:', promise);
+  logger.error('Reason:', reason);
 });
 
-process.on('uncaughtException', (error: Error) => {
+process.on('uncaughtException', (error) => {
   logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   logger.error('❌ Uncaught Exception');
   logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  logger.error(error.message);
+  logger.error(error);
   process.exit(1);
 });
 
