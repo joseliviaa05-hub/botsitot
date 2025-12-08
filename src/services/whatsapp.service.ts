@@ -51,7 +51,7 @@ class WhatsAppService {
     if (!this.client) return;
 
     this.client.on('qr', (qr: string) => {
-      logger.info('Codigo QR recibido.  Escanea con tu telefono:');
+      logger.info('Codigo QR recibido.   Escanea con tu telefono:');
       qrcode.generate(qr, { small: true });
     });
 
@@ -65,7 +65,7 @@ class WhatsAppService {
 
     this.client.on('ready', () => {
       this.isReady = true;
-      logger.success('Cliente de WhatsApp listo! ');
+      logger.success('Cliente de WhatsApp listo!  ');
     });
 
     this.client.on('authenticated', () => {
@@ -127,7 +127,7 @@ class WhatsAppService {
       }
     } catch (error) {
       logger.error('Error al manejar mensaje', error as Error);
-      await this.sendMessage(message.from, '❌ Ocurrio un error.  Por favor intenta nuevamente.');
+      await this.sendMessage(message.from, '❌ Ocurrio un error.   Por favor intenta nuevamente.');
     }
   }
 
@@ -150,7 +150,7 @@ class WhatsAppService {
       return;
     }
 
-    // 1.  Hacer pedido
+    // 1.   Hacer pedido
     if (
       body.includes('1') ||
       body.includes('pedido') ||
@@ -164,12 +164,14 @@ class WhatsAppService {
 
       await this.sendMessage(
         from,
-        '🛒 *NUEVO PEDIDO*\n\n' + 'Perfecto!  Vamos a armar tu pedido.\n\n' + '📝 ¿Como te llamas? '
+        '🛒 *NUEVO PEDIDO*\n\n' +
+          'Perfecto!   Vamos a armar tu pedido.\n\n' +
+          '📝 ¿Como te llamas?  '
       );
       return;
     }
 
-    // 2.  Consultar precio
+    // 2.   Consultar precio
     if (body.includes('2') || body.includes('precio') || body.includes('cuanto')) {
       conversaciones.set(from, {
         step: 'consulta',
@@ -183,13 +185,13 @@ class WhatsAppService {
       return;
     }
 
-    // 3.  Ver mis pedidos
+    // 3.   Ver mis pedidos
     if (body.includes('3') || body.includes('mis pedidos') || body.includes('historial')) {
       await this.mostrarHistorial(from);
       return;
     }
 
-    // 4. Ver categorías
+    // 4.  Ver categorías
     if (body.includes('4') || body.includes('categoria')) {
       await this.mostrarCategorias(from);
       return;
@@ -238,14 +240,14 @@ class WhatsAppService {
 
       await this.sendMessage(
         from,
-        `Perfecto ${conversacion.data.nombre}!  👍\n\n` +
+        `Perfecto ${conversacion.data.nombre}!   👍\n\n` +
           '🔍 *¿Que producto buscas?*\n\n' +
           'Escribi el nombre o escribi *categorias* para ver todas.'
       );
       return;
     }
 
-    // 2.  Buscar productos (DINAMICO desde BD)
+    // 2.   Buscar productos (DINAMICO desde BD)
     if (substep === 'buscar') {
       if (body === 'categorias') {
         await this.mostrarCategorias(from);
@@ -290,7 +292,7 @@ class WhatsAppService {
       let mensaje = `🎯 *Encontre ${productosEncontrados.length} productos:*\n\n`;
 
       productosEncontrados.slice(0, 10).forEach((prod: any, index: number) => {
-        mensaje += `${index + 1}.  *${prod.nombre}*\n`;
+        mensaje += `${index + 1}.   *${prod.nombre}*\n`;
         mensaje += `   💰 $${Number(prod.precio).toLocaleString('es-AR')}`;
         if (prod.unidad) mensaje += ` ${prod.unidad}`;
         mensaje += `\n\n`;
@@ -391,7 +393,7 @@ class WhatsAppService {
       return;
     }
 
-    // 4.  Tipo de entrega y confirmación
+    // 4.   Tipo de entrega y confirmación
     if (substep === 'entrega') {
       const tipoEntrega = body === '1' ? 'DELIVERY' : 'RETIRO';
 
@@ -418,7 +420,7 @@ class WhatsAppService {
             resumen +
             '\n\n' +
             '📞 Te contactaremos para coordinar la entrega.\n' +
-            '¡Gracias por tu compra!  🎉\n\n' +
+            '¡Gracias por tu compra!   🎉\n\n' +
             'Escribi *menu* para volver al inicio.'
         );
       } catch (error: any) {
@@ -473,7 +475,7 @@ class WhatsAppService {
       mensaje += `   ${prod.stock ? '✅ En stock' : '❌ Sin stock'}\n\n`;
     });
 
-    mensaje += '¿Queres hacer un pedido?  Escribi *pedido*';
+    mensaje += '¿Queres hacer un pedido?   Escribi *pedido*';
 
     await this.sendMessage(from, mensaje);
   }
@@ -490,7 +492,7 @@ class WhatsAppService {
     carrito.forEach((item, index) => {
       const subtotal = item.precio * item.cantidad;
       total += subtotal;
-      mensaje += `${index + 1}.  ${item.nombre} x${item.cantidad}\n`;
+      mensaje += `${index + 1}.   ${item.nombre} x${item.cantidad}\n`;
       mensaje += `   $${subtotal.toLocaleString('es-AR')}\n\n`;
     });
 
@@ -508,7 +510,7 @@ class WhatsAppService {
       await this.sendMessage(
         from,
         '📋 Todavia no tenes pedidos realizados.\n\n' +
-          'Escribi *pedido* para hacer tu primera compra!  🛒'
+          'Escribi *pedido* para hacer tu primera compra!   🛒'
       );
       return;
     }
@@ -535,7 +537,7 @@ class WhatsAppService {
       mensaje += `${index + 1}️⃣ ${cat.replace(/_/g, ' ')}\n`;
     });
 
-    mensaje += '\nEscribi el nombre de una categoria o busca un producto. ';
+    mensaje += '\nEscribi el nombre de una categoria o busca un producto.  ';
 
     await this.sendMessage(from, mensaje);
   }
@@ -580,7 +582,7 @@ class WhatsAppService {
       throw new Error('Cliente no inicializado');
     }
 
-    logger.info('Iniciando cliente de WhatsApp.. .');
+    logger.info('Iniciando cliente de WhatsApp..  .');
     await this.client.initialize();
   }
 
@@ -620,6 +622,30 @@ class WhatsAppService {
 
   isClientReady(): boolean {
     return this.isReady;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // 🆕 MÉTODO DESTROY - AGREGAR AQUÍ
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * Destruir cliente y limpiar recursos
+   */
+  async destroy(): Promise<void> {
+    if (!this.client) {
+      return;
+    }
+
+    try {
+      logger.info('Destruyendo cliente de WhatsApp.. .');
+      await this.client.destroy();
+      this.client = null;
+      this.isReady = false;
+      logger.success('✅ Cliente de WhatsApp destruido correctamente');
+    } catch (error) {
+      logger.error('Error al destruir cliente de WhatsApp', error as Error);
+      throw error;
+    }
   }
 }
 
