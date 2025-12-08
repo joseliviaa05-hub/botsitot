@@ -88,8 +88,8 @@ class WhatsAppService {
 
   private async handleMessage(message: Message): Promise<void> {
     try {
-      // Ignorar mensajes de grupos y propios
-      if (message.from.includes('@g.us') || message.fromMe) {
+      // ⭐ FIX 1: Ignorar mensajes de grupos, propios y estados de WhatsApp
+      if (message.from.includes('@g.us') || message.fromMe || message.from === 'status@broadcast') {
         return;
       }
 
@@ -238,7 +238,7 @@ class WhatsAppService {
 
       await this.sendMessage(
         from,
-        `Perfecto ${conversacion.data.nombre}!  👍\n\n` +
+        `Perfecto ${conversacion.data.nombre}! 👍\n\n` +
           '🔍 *¿Que producto buscas?*\n\n' +
           'Escribi el nombre o escribi *categorias* para ver todas.'
       );
@@ -290,7 +290,7 @@ class WhatsAppService {
       let mensaje = `🎯 *Encontre ${productosEncontrados.length} productos:*\n\n`;
 
       productosEncontrados.slice(0, 10).forEach((prod: any, index: number) => {
-        mensaje += `${index + 1}.  *${prod.nombre}*\n`;
+        mensaje += `${index + 1}. *${prod.nombre}*\n`;
         mensaje += `   💰 $${Number(prod.precio).toLocaleString('es-AR')}`;
         if (prod.unidad) mensaje += ` ${prod.unidad}`;
         mensaje += `\n\n`;
@@ -580,7 +580,7 @@ class WhatsAppService {
       throw new Error('Cliente no inicializado');
     }
 
-    logger.info('Iniciando cliente de WhatsApp.. .');
+    logger.info('Iniciando cliente de WhatsApp...');
     await this.client.initialize();
   }
 
