@@ -25,6 +25,7 @@ export const env: EnvConfig = {
   PORT: parseInt(process.env.PORT || '3000', 10),
   DATABASE_URL: process.env.DATABASE_URL || '',
   REDIS_URL: process.env.REDIS_URL || '',
+  GROQ_API_KEY: process.env.GROQ_API_KEY || '',
   JWT_SECRET: process.env.JWT_SECRET || 'temporal_secret',
   JWT_EXPIRATION: process.env.JWT_EXPIRATION || '7d',
   NUMERO_DUENO: process.env.NUMERO_DUENO!,
@@ -36,6 +37,7 @@ export const env: EnvConfig = {
   WHATSAPP_WHITELIST: process.env.WHATSAPP_WHITELIST
     ? process.env.WHATSAPP_WHITELIST.split(',').map((n) => n.trim())
     : [],
+  BUSINESS_NAME: process.env.BUSINESS_NAME || 'BOTSITOT',
 };
 
 // Log de configuración
@@ -49,6 +51,11 @@ console.log(
 );
 console.log('  NUMERO_DUENO:', env.NUMERO_DUENO);
 console.log('  DATA_DIR:', env.DATA_DIR);
+console.log('  BUSINESS_NAME:', env.BUSINESS_NAME);
+console.log(
+  '  GROQ_API_KEY:',
+  env.GROQ_API_KEY ? '✅ Configurado (IA habilitada)' : '⚠️ No configurado (IA deshabilitada)'
+);
 console.log(
   '  WHITELIST:',
   env.WHATSAPP_WHITELIST.length > 0

@@ -5,6 +5,7 @@ import { env } from '../config/env';
 import clienteService from '../services/cliente.service';
 import productoService from '../services/producto.service';
 import pedidoService from '../services/pedido.service';
+import aiService from '../services/ai.service'; // ⭐ NUEVO
 
 // Estado temporal de conversaciones
 interface ConversacionState {
@@ -51,7 +52,7 @@ class WhatsAppService {
     if (!this.client) return;
 
     this.client.on('qr', (qr: string) => {
-      logger.info('Codigo QR recibido.  Escanea con tu telefono:');
+      logger.info('Codigo QR recibido.   Escanea con tu telefono:');
       qrcode.generate(qr, { small: true });
     });
 
@@ -88,7 +89,7 @@ class WhatsAppService {
 
   private async handleMessage(message: Message): Promise<void> {
     try {
-      // ⭐ FIX 1: Ignorar mensajes de grupos, propios y estados de WhatsApp
+      // ⭐ Ignorar mensajes de grupos, propios y estados de WhatsApp
       if (message.from.includes('@g.us') || message.fromMe || message.from === 'status@broadcast') {
         return;
       }
@@ -112,33 +113,56 @@ class WhatsAppService {
       logger.info(`Mensaje de ${from} (AUTORIZADO): ${body}`);
 
       // Obtener o crear cliente
-      await clienteService.obtenerOCrear(from);
+      const cliente = await clienteService.obtenerOCrear(from);
 
       // Obtener estado de conversación
       const conversacion = conversaciones.get(from) || { step: 'menu', data: {} };
 
       // Enrutar según estado
       if (conversacion.step === 'menu') {
-        await this.handleMenu(message, body);
+        await this.handleMenu(message, body, cliente.nombre);
       } else if (conversacion.step === 'pedido') {
         await this.handlePedido(message, body, conversacion);
       } else if (conversacion.step === 'consulta') {
-        await this.handleConsulta(message, body);
+        await this.handleConsulta(message, body, cliente.nombre);
       }
     } catch (error) {
       logger.error('Error al manejar mensaje', error as Error);
-      await this.sendMessage(message.from, '❌ Ocurrio un error.  Por favor intenta nuevamente.');
+
+      // ⭐ Respuesta de error con IA
+      const respuestaError = await aiService.generarRespuesta({
+        mensajeUsuario: 'ocurrio un error',
+        tipoConsulta: 'general',
+        contexto: 'El sistema tuvo un error temporal',
+      });
+
+      await this.sendMessage(message.from, respuestaError);
     }
   }
 
-  private async handleMenu(message: Message, body: string): Promise<void> {
+  private async handleMenu(message: Message, body: string, nombreCliente?: string): Promise<void> {
     const from = message.from;
 
-    // Comandos del menú principal
-    if (body.includes('hola') || body.includes('menu') || body.includes('inicio')) {
+    // ⭐ Analizar intención del usuario con IA
+    const { intencion } = await aiService.analizarIntencion(body);
+
+    // Comandos del menú principal con respuestas naturales
+    if (
+      body.includes('hola') ||
+      body.includes('menu') ||
+      body.includes('inicio') ||
+      intencion === 'saludo'
+    ) {
+      // ⭐ Respuesta natural con IA para saludo
+      const respuestaSaludo = await aiService.generarRespuesta({
+        mensajeUsuario: body,
+        nombreCliente: nombreCliente || undefined,
+        tipoConsulta: 'general',
+      });
+
       const menuText =
-        '👋 *¡Hola! Bienvenido a BOTSITOT*\n\n' +
-        '¿Que necesitas?\n\n' +
+        `${respuestaSaludo}\n\n` +
+        '¿Qué necesitas?\n\n' +
         '1️⃣ 🛒 Hacer un pedido\n' +
         '2️⃣ 💰 Consultar precio\n' +
         '3️⃣ 📋 Ver mis pedidos\n' +
@@ -155,43 +179,58 @@ class WhatsAppService {
       body.includes('1') ||
       body.includes('pedido') ||
       body.includes('pedir') ||
-      body.includes('comprar')
+      body.includes('comprar') ||
+      intencion === 'pedido'
     ) {
       conversaciones.set(from, {
         step: 'pedido',
         data: { substep: 'nombre', carrito: [] },
       });
 
-      await this.sendMessage(
-        from,
-        '🛒 *NUEVO PEDIDO*\n\n' + 'Perfecto!  Vamos a armar tu pedido.\n\n' + '📝 ¿Como te llamas? '
-      );
+      // ⭐ Respuesta natural
+      const respuesta = await aiService.generarRespuesta({
+        mensajeUsuario: 'quiero hacer un pedido',
+        nombreCliente: nombreCliente || undefined,
+        tipoConsulta: 'general',
+        contexto: 'El cliente va a iniciar un pedido.  Preguntale su nombre de forma amigable.',
+      });
+
+      await this.sendMessage(from, `${respuesta}\n\n📝 ¿Cómo te llamas?`);
       return;
     }
 
-    // 2.  Consultar precio
-    if (body.includes('2') || body.includes('precio') || body.includes('cuanto')) {
+    // 2. Consultar precio
+    if (
+      body.includes('2') ||
+      body.includes('precio') ||
+      body.includes('cuanto') ||
+      intencion === 'precio'
+    ) {
       conversaciones.set(from, {
         step: 'consulta',
         data: { tipo: 'precio' },
       });
 
-      await this.sendMessage(
-        from,
-        '💰 *CONSULTA DE PRECIO*\n\n' + 'Escribi el nombre del producto que queres consultar:'
-      );
+      // ⭐ Respuesta natural
+      const respuesta = await aiService.generarRespuesta({
+        mensajeUsuario: body,
+        nombreCliente: nombreCliente || undefined,
+        tipoConsulta: 'precio',
+      });
+
+      await this.sendMessage(from, respuesta);
       return;
     }
 
-    // 3.  Ver mis pedidos
+    // 3. Ver mis pedidos
     if (body.includes('3') || body.includes('mis pedidos') || body.includes('historial')) {
-      await this.mostrarHistorial(from);
+      await this.mostrarHistorial(from, nombreCliente);
       return;
     }
 
     // 4. Ver categorías
     if (body.includes('4') || body.includes('categoria')) {
-      await this.mostrarCategorias(from);
+      await this.mostrarCategorias(from, nombreCliente);
       return;
     }
 
@@ -200,17 +239,23 @@ class WhatsAppService {
       body.includes('5') ||
       body.includes('info') ||
       body.includes('horario') ||
-      body.includes('ubicacion')
+      body.includes('ubicacion') ||
+      intencion === 'consulta'
     ) {
-      await this.mostrarInformacion(from);
+      await this.mostrarInformacion(from, body, nombreCliente);
       return;
     }
 
-    // Si no coincide con nada, mostrar menú
-    await this.sendMessage(
-      from,
-      '❓ No entendi tu mensaje.\n\n' + 'Escribi *menu* para ver las opciones disponibles.'
-    );
+    // ⭐ Si no coincide con nada, respuesta inteligente con IA
+    const respuestaGeneral = await aiService.generarRespuesta({
+      mensajeUsuario: body,
+      nombreCliente: nombreCliente || undefined,
+      tipoConsulta: 'general',
+      contexto:
+        'El cliente escribió algo que no entendiste. Responde amablemente y sugerile escribir "menu".',
+    });
+
+    await this.sendMessage(from, `${respuestaGeneral}\n\nEscribí *menu* para ver las opciones.`);
   }
 
   private async handlePedido(
@@ -224,7 +269,15 @@ class WhatsAppService {
     // Cancelar pedido
     if (body.includes('cancelar') || body.includes('salir')) {
       conversaciones.delete(from);
-      await this.sendMessage(from, '❌ Pedido cancelado.\n\nEscribi *menu* para volver al inicio.');
+
+      // ⭐ Respuesta natural para cancelación
+      const respuesta = await aiService.generarRespuesta({
+        mensajeUsuario: 'cancelar pedido',
+        nombreCliente: nombre,
+        contexto: 'El cliente canceló su pedido.  Responde amablemente.',
+      });
+
+      await this.sendMessage(from, `${respuesta}\n\nEscribí *menu* para volver al inicio.`);
       return;
     }
 
@@ -236,19 +289,24 @@ class WhatsAppService {
 
       await clienteService.actualizarNombre(from, conversacion.data.nombre);
 
+      // ⭐ Respuesta personalizada
+      const respuesta = await aiService.generarRespuesta({
+        mensajeUsuario: `mi nombre es ${conversacion.data.nombre}`,
+        nombreCliente: conversacion.data.nombre,
+        contexto: 'Ahora preguntale qué producto busca',
+      });
+
       await this.sendMessage(
         from,
-        `Perfecto ${conversacion.data.nombre}! 👍\n\n` +
-          '🔍 *¿Que producto buscas?*\n\n' +
-          'Escribi el nombre o escribi *categorias* para ver todas.'
+        `${respuesta}\n\n🔍 *¿Qué producto buscas?*\n\nEscribí el nombre o escribí *categorias* para ver todas. `
       );
       return;
     }
 
-    // 2.  Buscar productos (DINAMICO desde BD)
+    // 2. Buscar productos (DINAMICO desde BD)
     if (substep === 'buscar') {
       if (body === 'categorias') {
-        await this.mostrarCategorias(from);
+        await this.mostrarCategorias(from, nombre);
         return;
       }
 
@@ -276,10 +334,14 @@ class WhatsAppService {
       }
 
       if (productosEncontrados.length === 0) {
-        await this.sendMessage(
-          from,
-          '❌ No encontre productos.\n\n' + 'Proba con otro termino o escribi *categorias*'
-        );
+        // ⭐ Respuesta natural cuando no encuentra productos
+        const respuesta = await aiService.generarRespuesta({
+          mensajeUsuario: `busco ${body}`,
+          nombreCliente: nombre,
+          contexto: `No encontramos productos para "${body}". Sugerile probar con otro término o ver categorías.`,
+        });
+
+        await this.sendMessage(from, `${respuesta}\n\nEscribí *categorias* para ver todo.`);
         return;
       }
 
@@ -287,16 +349,17 @@ class WhatsAppService {
       conversacion.data.substep = 'seleccionar';
       conversaciones.set(from, conversacion);
 
-      let mensaje = `🎯 *Encontre ${productosEncontrados.length} productos:*\n\n`;
+      // ⭐ Mensaje con toque personal
+      let mensaje = `¡Genial! Encontré ${productosEncontrados.length} productos:\n\n`;
 
       productosEncontrados.slice(0, 10).forEach((prod: any, index: number) => {
-        mensaje += `${index + 1}. *${prod.nombre}*\n`;
+        mensaje += `${index + 1}.  *${prod.nombre}*\n`;
         mensaje += `   💰 $${Number(prod.precio).toLocaleString('es-AR')}`;
         if (prod.unidad) mensaje += ` ${prod.unidad}`;
         mensaje += `\n\n`;
       });
 
-      mensaje += '📝 Para agregar escribi:\n';
+      mensaje += '📝 Para agregar escribí:\n';
       mensaje += '*agregar [numero] [cantidad]*\n';
       mensaje += 'Ejemplo: agregar 1 2';
 
@@ -347,12 +410,19 @@ class WhatsAppService {
 
         const subtotal = Number(producto.precio) * cantidad;
 
+        // ⭐ Confirmación natural
+        const respuesta = await aiService.generarRespuesta({
+          mensajeUsuario: `agregue ${producto.nombre} x${cantidad}`,
+          nombreCliente: nombre,
+          contexto: `Confirmale que agregaste ${producto.nombre} x${cantidad} al carrito por $${subtotal}`,
+        });
+
         await this.sendMessage(
           from,
-          `✅ Agregado al carrito:\n\n` +
+          `${respuesta}\n\n` +
             `📦 ${producto.nombre} x${cantidad}\n` +
             `💰 $${subtotal.toLocaleString('es-AR')}\n\n` +
-            `Podes:\n` +
+            `Podés:\n` +
             `➕ Seguir buscando productos\n` +
             `🛒 Escribir *ver carrito*\n` +
             `✅ Escribir *confirmar* para finalizar`
@@ -361,13 +431,13 @@ class WhatsAppService {
       }
 
       if (body.includes('ver carrito') || body.includes('carrito')) {
-        await this.mostrarCarrito(from, carrito);
+        await this.mostrarCarrito(from, carrito, nombre);
         return;
       }
 
       if (body.includes('confirmar')) {
         if (carrito.length === 0) {
-          await this.sendMessage(from, '❌ Tu carrito esta vacio.');
+          await this.sendMessage(from, '❌ Tu carrito está vacío.');
           return;
         }
 
@@ -379,7 +449,7 @@ class WhatsAppService {
           '📍 *TIPO DE ENTREGA*\n\n' +
             '1️⃣ 🚚 Delivery (+$500)\n' +
             '2️⃣ 🏪 Retiro en local (Gratis)\n\n' +
-            'Escribi 1 o 2:'
+            'Escribí 1 o 2:'
         );
         return;
       }
@@ -412,19 +482,27 @@ class WhatsAppService {
         // Limpiar conversación
         conversaciones.delete(from);
 
+        // ⭐ Confirmación final con IA
+        const respuesta = await aiService.generarRespuesta({
+          mensajeUsuario: 'confirme mi pedido',
+          nombreCliente: nombre,
+          contexto: `El pedido ${pedido.numero} fue confirmado exitosamente. Agradecele y decile que lo contactaremos.`,
+        });
+
         await this.sendMessage(
           from,
-          '✅ *PEDIDO CONFIRMADO*\n\n' +
+          `${respuesta}\n\n` +
+            '✅ *PEDIDO CONFIRMADO*\n\n' +
             resumen +
             '\n\n' +
             '📞 Te contactaremos para coordinar la entrega.\n' +
             '¡Gracias por tu compra!  🎉\n\n' +
-            'Escribi *menu* para volver al inicio.'
+            'Escribí *menu* para volver al inicio.'
         );
       } catch (error: any) {
         await this.sendMessage(
           from,
-          '❌ Error al crear el pedido:\n' + error.message + '\n\nIntenta nuevamente.'
+          '❌ Error al crear el pedido:\n' + error.message + '\n\nIntentá nuevamente.'
         );
         conversaciones.delete(from);
       }
@@ -432,7 +510,11 @@ class WhatsAppService {
     }
   }
 
-  private async handleConsulta(message: Message, body: string): Promise<void> {
+  private async handleConsulta(
+    message: Message,
+    body: string,
+    nombreCliente?: string
+  ): Promise<void> {
     const from = message.from;
 
     // Obtener categorías dinámicamente desde la BD
@@ -455,10 +537,15 @@ class WhatsAppService {
     conversaciones.delete(from);
 
     if (productos.length === 0) {
-      await this.sendMessage(
-        from,
-        '❌ No encontre ese producto.\n\n' + 'Proba con otro nombre o escribi *menu*'
-      );
+      // ⭐ Respuesta natural cuando no encuentra
+      const respuesta = await aiService.generarRespuesta({
+        mensajeUsuario: `cuanto cuesta ${body}`,
+        nombreCliente,
+        tipoConsulta: 'precio',
+        contexto: `No encontramos "${body}". Sugerile probar con otro nombre o ver el menú.`,
+      });
+
+      await this.sendMessage(from, `${respuesta}\n\nEscribí *menu* para ver opciones.`);
       return;
     }
 
@@ -473,14 +560,18 @@ class WhatsAppService {
       mensaje += `   ${prod.stock ? '✅ En stock' : '❌ Sin stock'}\n\n`;
     });
 
-    mensaje += '¿Queres hacer un pedido?  Escribi *pedido*';
+    mensaje += '¿Querés hacer un pedido?  Escribí *pedido*';
 
     await this.sendMessage(from, mensaje);
   }
 
-  private async mostrarCarrito(from: string, carrito: any[]): Promise<void> {
+  private async mostrarCarrito(
+    from: string,
+    carrito: any[],
+    nombreCliente?: string
+  ): Promise<void> {
     if (carrito.length === 0) {
-      await this.sendMessage(from, '🛒 Tu carrito esta vacio.');
+      await this.sendMessage(from, '🛒 Tu carrito está vacío.');
       return;
     }
 
@@ -490,7 +581,7 @@ class WhatsAppService {
     carrito.forEach((item, index) => {
       const subtotal = item.precio * item.cantidad;
       total += subtotal;
-      mensaje += `${index + 1}.  ${item.nombre} x${item.cantidad}\n`;
+      mensaje += `${index + 1}. ${item.nombre} x${item.cantidad}\n`;
       mensaje += `   $${subtotal.toLocaleString('es-AR')}\n\n`;
     });
 
@@ -501,14 +592,20 @@ class WhatsAppService {
     await this.sendMessage(from, mensaje);
   }
 
-  private async mostrarHistorial(from: string): Promise<void> {
+  private async mostrarHistorial(from: string, nombreCliente?: string): Promise<void> {
     const pedidos = await clienteService.obtenerHistorialPedidos(from, 5);
 
     if (pedidos.length === 0) {
+      // ⭐ Respuesta natural
+      const respuesta = await aiService.generarRespuesta({
+        mensajeUsuario: 'ver mis pedidos',
+        nombreCliente,
+        contexto: 'El cliente no tiene pedidos todavía.  Animalo a hacer su primer pedido.',
+      });
+
       await this.sendMessage(
         from,
-        '📋 Todavia no tenes pedidos realizados.\n\n' +
-          'Escribi *pedido* para hacer tu primera compra!  🛒'
+        `${respuesta}\n\nEscribí *pedido* para hacer tu primera compra!  🛒`
       );
       return;
     }
@@ -526,7 +623,7 @@ class WhatsAppService {
     await this.sendMessage(from, mensaje);
   }
 
-  private async mostrarCategorias(from: string): Promise<void> {
+  private async mostrarCategorias(from: string, nombreCliente?: string): Promise<void> {
     // Obtener categorías dinámicamente desde la BD
     const categorias = await productoService.obtenerCategorias();
 
@@ -535,25 +632,48 @@ class WhatsAppService {
       mensaje += `${index + 1}️⃣ ${cat.replace(/_/g, ' ')}\n`;
     });
 
-    mensaje += '\nEscribi el nombre de una categoria o busca un producto. ';
+    mensaje += '\nEscribí el nombre de una categoría o buscá un producto. ';
 
     await this.sendMessage(from, mensaje);
   }
 
-  private async mostrarInformacion(from: string): Promise<void> {
+  private async mostrarInformacion(
+    from: string,
+    mensajeOriginal: string,
+    nombreCliente?: string
+  ): Promise<void> {
+    // ⭐ Respuesta personalizada según la consulta
+    let contexto = '';
+    if (mensajeOriginal.includes('horario')) {
+      contexto =
+        'Información de horarios: Lunes a Viernes 9:00-19:00, Sábados 9:00-13:00, Domingos cerrado. ';
+    } else if (mensajeOriginal.includes('ubicacion') || mensajeOriginal.includes('direccion')) {
+      contexto = 'Consulta de ubicación.  Dale la dirección del local.';
+    } else {
+      contexto = 'Información general del local';
+    }
+
+    const respuestaIA = await aiService.generarRespuesta({
+      mensajeUsuario: mensajeOriginal,
+      nombreCliente,
+      tipoConsulta: 'general',
+      contexto,
+    });
+
     const mensaje =
+      `${respuestaIA}\n\n` +
       '🏪 *INFORMACION DEL LOCAL*\n\n' +
-      '📍 Direccion: [Tu direccion aqui]\n' +
+      '📍 Dirección: [Tu direccion aqui]\n' +
       '🕐 Horarios:\n' +
       '   Lunes a Viernes: 9:00 - 19:00\n' +
-      '   Sabados: 9:00 - 13:00\n' +
+      '   Sábados: 9:00 - 13:00\n' +
       '   Domingos: Cerrado\n\n' +
       '💳 *MEDIOS DE PAGO:*\n' +
       '✅ Efectivo\n' +
       '✅ Transferencia\n' +
       '✅ Mercado Pago\n' +
       '✅ Tarjetas\n\n' +
-      '📞 Tambien podes hacer pedidos por este chat 24/7';
+      '📞 También podés hacer pedidos por este chat 24/7';
 
     await this.sendMessage(from, mensaje);
   }

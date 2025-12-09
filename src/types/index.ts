@@ -77,4 +77,6 @@ export interface EnvConfig {
   LOGS_DIR: string;
   BACKUP_DIR: string;
   WHATSAPP_WHITELIST: string[];
+  GROQ_API_KEY: string;
+  BUSINESS_NAME: string;
 }
