@@ -696,6 +696,16 @@
       "total_pedidos": 0,
       "total_gastado": 0,
       "pedidos": []
+    },
+    {
+      "id": "CLI-1764780374754",
+      "nombre": "Cliente Test",
+      "telefono": "5491162002289",
+      "email": "test@test.com",
+      "fecha_registro": "2025-12-03T16:46:14.754Z",
+      "ultima_interaccion": "2025-12-03T16:46:14.754Z",
+      "total_pedidos": 0,
+      "total_gastado": 0
     }
   ],
   "estadisticas": {

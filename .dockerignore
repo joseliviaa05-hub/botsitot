@@ -1,185 +1,106 @@
 # ═══════════════════════════════════════════════════════════════
-# GITIGNORE - BOTSITOT
-# Actualizado: 2025-12-07
+# DOCKERIGNORE - BOTSITOT v2. 0
+# Archivos excluidos del build de Docker
 # ═══════════════════════════════════════════════════════════════
 
 # ─────────────────────────────────────────────────────────────
 # Dependencies
 # ─────────────────────────────────────────────────────────────
-node_modules/
-npm-debug.log
-yarn-error.log
-package-lock.json.bak
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # ─────────────────────────────────────────────────────────────
-# Environment Variables
+# Build outputs
+# ─────────────────────────────────────────────────────────────
+dist
+build
+*.tsbuildinfo
+
+# ─────────────────────────────────────────────────────────────
+# Testing
+# ─────────────────────────────────────────────────────────────
+coverage
+.nyc_output
+*.test.ts
+*.spec.ts
+tests/
+__tests__/
+jest.config.js
+
+# ─────────────────────────────────────────────────────────────
+# Git
+# ─────────────────────────────────────────────────────────────
+.git
+.gitignore
+.gitattributes
+
+# ─────────────────────────────────────────────────────────────
+# CI/CD
+# ─────────────────────────────────────────────────────────────
+.github
+
+# ─────────────────────────────────────────────────────────────
+# Documentation
+# ─────────────────────────────────────────────────────────────
+*.md
+!README.md
+docs/
+
+# ─────────────────────────────────────────────────────────────
+# Environment
 # ─────────────────────────────────────────────────────────────
 .env
-.env.local
-.env.production
-.env.*.local
-.env.docker
-
-# MANTENER: .env.example (template público)
+.env.*
+!.env.example
 
 # ─────────────────────────────────────────────────────────────
-# WhatsApp Session & Cache
+# IDE
 # ─────────────────────────────────────────────────────────────
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# ─────────────────────────────────────────────────────────────
+# OS
+# ─────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─────────────────────────────────────────────────────────────
+# Logs & Data (se generan en runtime)
+# ─────────────────────────────────────────────────────────────
+logs/
+*.log
+data/
 .wwebjs_auth/
 .wwebjs_cache/
+backups/
 whatsapp-session/
-auth_info/
+
+# ─────────────────────────────────────────────────────────────
+# Docker
+# ─────────────────────────────────────────────────────────────
+Dockerfile
+docker-compose*.yml
+.dockerignore
+docker-scripts.md
 
 # ─────────────────────────────────────────────────────────────
 # Database
 # ─────────────────────────────────────────────────────────────
 *.db
 *.sqlite
-*.sqlite3
-
-# Data backups (ignorar archivos JSON de data, pero no estructura)
 data/*.json
-backups/
-
-# MANTENER: data/ (carpeta vacía)
-# MANTENER: prisma/schema.prisma
-
-# ─────────────────────────────────────────────────────────────
-# Logs
-# ─────────────────────────────────────────────────────────────
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-pnpm-debug.log*
-
-# ─────────────────────────────────────────────────────────────
-# Operating System
-# ─────────────────────────────────────────────────────────────
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-desktop.ini
-
-# ─────────────────────────────────────────────────────────────
-# IDEs & Editors
-# ─────────────────────────────────────────────────────────────
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-*.sublime-project
-*.sublime-workspace
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.tmproj
-. vscode/*
-!.vscode/settings. json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
-# ─────────────────────────────────────────────────────────────
-# Build Output
-# ─────────────────────────────────────────────────────────────
-dist/
-build/
-out/
-*.tsbuildinfo
-.next/
-.nuxt/
-.cache/
-
-# ─────────────────────────────────────────────────────────────
-# Testing & Coverage
-# ─────────────────────────────────────────────────────────────
-coverage/
-*.lcov
-.nyc_output/
-.jest/
-test-results/
-*.spec.js.snap
-
-# ─────────────────────────────────────────────────────────────
-# Prisma
-# ─────────────────────────────────────────────────────────────
-# Ignorar migraciones en progreso/temporales
-prisma/migrations/*_migration/
-
-# MANTENER:
-# - prisma/schema.prisma
-# - prisma/migrations/ (carpeta)
-# - prisma/migrations/*/ (migraciones finalizadas)
-# - prisma/seed.ts
-
-# ─────────────────────────────────────────────────────────────
-# Docker (datos locales, NO configuración)
-# ─────────────────────────────────────────────────────────────
-# Ignorar volúmenes de Docker (datos locales)
-postgres_data/
-redis_data/
-docker-data/
-
-# MANTENER:
-# - Dockerfile
-# - Dockerfile.dev
-# - docker-compose.yml
-# - docker-compose.dev.yml
-# - .dockerignore
-
-# ─────────────────────────────────────────────────────────────
-# Temporary Files
-# ─────────────────────────────────────────────────────────────
-*.tmp
-*. temp
-*.bak
-*.swp
-*~.nib
-dir
-Nuevo Documento de texto.txt
 
 # ─────────────────────────────────────────────────────────────
 # Misc
 # ─────────────────────────────────────────────────────────────
-.vercel
-.turbo
-.pnp
-.pnp.js
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
-
-# ─────────────────────────────────────────────────────────────
-# App-specific (opcional - descomentar si es necesario)
-# ─────────────────────────────────────────────────────────────
-# uploads/
-# temp/
-# public/uploads/
-
-# ─────────────────────────────────────────────────────────────
-# MANTENER ESTOS ARCHIVOS (NO ignorar)
-# ─────────────────────────────────────────────────────────────
-# ✅ .env.example
-# ✅ .dockerignore
-# ✅ .gitignore
-# ✅ README.md
-# ✅ DEPLOYMENT.md
-# ✅ package.json
-# ✅ package-lock.json
-# ✅ tsconfig.json
-# ✅ jest.config.ts
-# ✅ prisma/schema.prisma
-# ✅ prisma/seed.ts
-# ✅ Dockerfile*
-# ✅ docker-compose*. yml
+*.bak
+*.tmp
+*.temp
+.cache

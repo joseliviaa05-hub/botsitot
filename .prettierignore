@@ -1,0 +1,36 @@
+# Build outputs
+dist/
+build/
+out/
+
+# Dependencies
+node_modules/
+
+# Coverage
+coverage/
+
+# Prisma
+prisma/migrations/
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env
+.env.*
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Git
+.git/
+
+# Docker
+Dockerfile*
+
+# README
+README.md
+CHANGELOG.md

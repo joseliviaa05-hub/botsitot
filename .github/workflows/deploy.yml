@@ -1,0 +1,61 @@
+# ═══════════════════════════════════════════════════════════════
+# DEPLOY WORKFLOW - Continuous Deployment
+# Deploy automático a Railway cuando se hace push a main
+# ═══════════════════════════════════════════════════════════════
+
+name: Deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: 🚀 Deploy to Railway
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🧪 Run tests
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          NODE_ENV: test
+          PORT: 3000
+          NUMERO_DUENO: ${{ secrets.NUMERO_DUENO }}
+        run: npm test -- --maxWorkers=2
+
+      - name: 🏗️ Build TypeScript
+        run: npm run build
+
+      - name: 🚀 Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          npm install -g @railway/cli
+          railway link ${{ secrets.RAILWAY_PROJECT_ID }}
+          railway up --detach
+
+      - name: 🗄️ Run database migrations
+        env:
+          RAILWAY_TOKEN: ${{ secrets. RAILWAY_TOKEN }}
+        run: |
+          railway run npx prisma migrate deploy
+
+      - name: ✅ Deployment successful
+        run: |
+          echo "✅ Deployment completed successfully!"
+          echo "🌍 URL: https://botsitot-production.up.railway.app"

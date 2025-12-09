@@ -1,0 +1,59 @@
+# ═══════════════════════════════════════════════════════════════
+# DOCKERFILE.DEV - BOTSITOT (DESARROLLO)
+# Hot-reload con ts-node-dev
+# ═══════════════════════════════════════════════════════════════
+
+FROM node:18-alpine
+
+WORKDIR /app
+
+# ✅ Instalar Git + dependencias del sistema para WhatsApp
+RUN apk add --no-cache \
+    git \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    font-noto-emoji
+
+# Variables de entorno para Puppeteer
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    NODE_ENV=development
+
+# Copiar package files
+COPY package*.json ./
+
+# Instalar TODAS las dependencias (incluidas dev)
+RUN npm install
+
+# Copiar prisma schema
+COPY prisma ./prisma
+
+# Generar Prisma Client
+RUN npx prisma generate
+
+# El código fuente se monta como volumen (no se copia)
+# Esto permite hot-reload
+
+# Crear directorios necesarios
+RUN mkdir -p \
+    /app/. wwebjs_auth \
+    /app/.wwebjs_cache \
+    /app/logs \
+    /app/data
+
+# Usuario no-root por seguridad
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 && \
+    chown -R nodejs:nodejs /app
+
+USER nodejs
+
+# Exponer puerto
+EXPOSE 3000
+
+# Comando de desarrollo con hot-reload
+CMD ["npm", "run", "dev"]

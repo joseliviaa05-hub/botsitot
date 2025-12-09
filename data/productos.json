@@ -1,0 +1,29 @@
+[
+  {
+    "id": "PROD-1764780158791",
+    "nombre": "Producto Test",
+    "descripcion": "Descripci�n del producto",
+    "precio": 1500,
+    "stock": 10,
+    "categoria": "Test",
+    "fechaCreacion": "2025-12-03T16:42:38.791Z"
+  },
+  {
+    "id": "PROD-1764780190587",
+    "nombre": "Producto Test",
+    "descripcion": "Descripci�n del producto",
+    "precio": 1500,
+    "stock": 10,
+    "categoria": "Test",
+    "fechaCreacion": "2025-12-03T16:43:10.587Z"
+  },
+  {
+    "id": "PROD-1764780371023",
+    "nombre": "Producto Test",
+    "descripcion": "Descripci�n del producto",
+    "precio": 1500,
+    "stock": 10,
+    "categoria": "Test",
+    "fechaCreacion": "2025-12-03T16:46:11.023Z"
+  }
+]
